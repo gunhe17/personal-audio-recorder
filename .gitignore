@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment / local config
+.env
+.env.*
+!.env.example
+*.local
+
+# Build / package artifacts
+target/
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Runtime data
+data/sessions/
+recordings/
+exports/
+logs/
+tmp/
+.cache/
+*.log

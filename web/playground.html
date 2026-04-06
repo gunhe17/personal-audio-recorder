@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recorder UI Playground</title>
+    <link rel="stylesheet" href="./design-system.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <section class="hero">
+        <div class="hero__lead" data-stagger="1">
+          <span class="eyebrow">
+            <span class="signal-dot" style="color: var(--signal-red)"></span>
+            Recorder UI System
+          </span>
+          <h1>Field console UI for a serious multitrack recorder.</h1>
+          <p>
+            X32 and TF-class hardware deserves a screen that reads like a control surface, not a generic admin page. This playground defines the visual system, interaction components, and recorder-specific widgets before application code starts.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="#composite">Open Composite Surface</a>
+            <a class="button button--secondary" href="#components">Inspect Components</a>
+            <a class="button button--ghost" href="#tokens">Review Tokens</a>
+          </div>
+        </div>
+
+        <aside class="hero__aside" data-stagger="2">
+          <div class="hero__meta">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h3>Live Demo State</h3>
+                <p class="muted" style="color: rgba(247, 241, 228, 0.72)">
+                  Playground metrics are synthetic but use the same component states planned for the app.
+                </p>
+              </div>
+              <span class="status-pill is-red">
+                <span class="signal-dot"></span>
+                Recording
+              </span>
+            </div>
+
+            <div class="hero__meta-grid">
+              <div class="hero__meta-card">
+                <label>Session</label>
+                <strong>sess_150501</strong>
+              </div>
+              <div class="hero__meta-card">
+                <label>Storage</label>
+                <strong>server_local</strong>
+              </div>
+              <div class="hero__meta-card">
+                <label>Duration</label>
+                <strong data-demo-time>00:13:24</strong>
+              </div>
+              <div class="hero__meta-card">
+                <label>Drops</label>
+                <strong>0</strong>
+              </div>
+            </div>
+
+            <div class="alert-banner alert-banner--warning">
+              <strong>Design system scope</strong>
+              <p>
+                Components below cover recorder control, session management, storage target selection, channel metering, and export flows. This page is the visual contract for the first implementation pass.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <main class="section-stack">
+        <section id="tokens" class="panel" data-stagger="2">
+          <div class="section-head">
+            <div class="section-head__title">
+              <h2>Tokens</h2>
+              <p>Warm analog surfaces, carbon control panels, and readable signal colors.</p>
+            </div>
+            <span class="status-pill is-cyan">
+              <span class="signal-dot"></span>
+              Foundation
+            </span>
+          </div>
+
+          <div class="token-grid">
+            <div class="swatch" style="background: var(--bg-canvas)">
+              <strong>Canvas</strong>
+              <span>#efe5d3</span>
+            </div>
+            <div class="swatch" style="background: var(--bg-panel)">
+              <strong>Panel</strong>
+              <span>Warm paper</span>
+            </div>
+            <div class="swatch" style="background: var(--bg-panel-strong); color: var(--text-inverse)">
+              <strong>Console</strong>
+              <span>#171613</span>
+            </div>
+            <div class="swatch" style="background: var(--signal-cyan); color: #f7f1e4">
+              <strong>Accent</strong>
+              <span>#177e88</span>
+            </div>
+            <div class="swatch" style="background: var(--signal-green); color: #f7f1e4">
+              <strong>Ready</strong>
+              <span>#3e8d61</span>
+            </div>
+            <div class="swatch" style="background: var(--signal-amber); color: #fff7ef">
+              <strong>Pending</strong>
+              <span>#bf8b2b</span>
+            </div>
+            <div class="swatch" style="background: var(--signal-red); color: #fff7ef">
+              <strong>Critical</strong>
+              <span>#c54f3f</span>
+            </div>
+            <div class="swatch" style="background: linear-gradient(180deg, var(--meter-safe), var(--meter-mid), var(--meter-hot), var(--meter-clip)); color: #fff7ef">
+              <strong>Meter Scale</strong>
+              <span>Safe to clip</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="playground-grid" id="components">
+          <section class="panel span-7" data-stagger="3">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Typography</h2>
+                <p>Display serif for structure, mono for telemetry, UI sans for controls.</p>
+              </div>
+            </div>
+            <div class="type-sample">
+              <div class="type-sample__display">Broadcast-grade clarity for live capture.</div>
+              <div class="type-sample__body">
+                Recorder workflows need dense information, but density should never collapse into noise. This system keeps hierarchy strong, numbers aligned, and warnings unmistakable.
+              </div>
+              <div class="type-sample__mono">USB 01 / 48kHz / -12.4 dBFS / sess_20260406_150501</div>
+            </div>
+          </section>
+
+          <section class="panel span-5" data-stagger="3">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Buttons</h2>
+                <p>Transport actions are bold; destructive actions are unmistakable.</p>
+              </div>
+            </div>
+            <div class="button-grid">
+              <div class="button-row">
+                <button class="button button--primary">Start Recording</button>
+                <button class="button button--secondary">Prepare Session</button>
+              </div>
+              <div class="button-row">
+                <button class="button button--ghost">Generate Export</button>
+                <button class="button button--danger">Stop Now</button>
+              </div>
+              <div class="button-row">
+                <button class="button button--quiet">Dismiss</button>
+                <button class="button button--secondary" disabled>Disabled</button>
+              </div>
+              <div class="button-row">
+                <button class="icon-button" aria-label="Refresh">R</button>
+                <button class="icon-button" aria-label="Download">D</button>
+                <button class="icon-button" aria-label="Menu">...</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel span-5" data-stagger="4">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Fields</h2>
+                <p>Forms are high-contrast and utility-first.</p>
+              </div>
+            </div>
+
+            <div class="fields">
+              <label class="field">
+                <span class="field__label">Session Title <span class="field__hint">Required</span></span>
+                <input class="field__control" type="text" value="Sunday Service AM" />
+              </label>
+
+              <div class="field">
+                <span class="field__label">Input Device <span class="field__hint">ASIO recommended</span></span>
+                <div class="dropdown-select" data-dropdown-select>
+                  <button class="dropdown-select__trigger" type="button" aria-expanded="false">
+                    <span class="dropdown-select__value">X-USB ASIO Driver</span>
+                    <span class="dropdown-select__chevron" aria-hidden="true"></span>
+                  </button>
+                  <div class="dropdown-select__menu" role="listbox">
+                    <button class="dropdown-select__option is-selected" type="button" data-value="X-USB ASIO Driver">
+                      <strong>X-USB ASIO Driver</strong>
+                      <small>32 inputs, ASIO backend, preferred for X32 workflows.</small>
+                    </button>
+                    <button class="dropdown-select__option" type="button" data-value="TF Rack USB">
+                      <strong>TF Rack USB</strong>
+                      <small>34 input profile, Yamaha driver path.</small>
+                    </button>
+                    <button class="dropdown-select__option" type="button" data-value="MacBook Microphone">
+                      <strong>MacBook Microphone</strong>
+                      <small>2 input fallback device, not suitable for multitrack capture.</small>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <label class="field">
+                <span class="field__label">Search Tracks <span class="field__hint">Optional</span></span>
+                <input class="field__control" type="text" placeholder="Kick, VOX, USB 17..." />
+              </label>
+            </div>
+          </section>
+
+          <section class="panel span-7" data-stagger="4">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Selection Controls</h2>
+                <p>Storage target and profile selection use card-like segmented controls.</p>
+              </div>
+              <span class="status-pill is-green">
+                <span class="signal-dot"></span>
+                Recommended path
+              </span>
+            </div>
+
+            <div class="segmented" data-segmented-group="storage-target">
+              <label class="segmented__item is-selected">
+                <input checked name="storage-target" type="radio" />
+                <strong>Server Local</strong>
+                <span>Persist on the recorder PC and keep track-level access available after capture.</span>
+              </label>
+              <label class="segmented__item">
+                <input name="storage-target" type="radio" />
+                <strong>Client Download</strong>
+                <span>Capture locally on the server first, then deliver a ZIP archive to the browser.</span>
+              </label>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="cluster">
+              <label class="toggle">
+                <input checked type="checkbox" />
+                Armed by default
+              </label>
+              <label class="toggle">
+                <input type="checkbox" />
+                Auto-export after stop
+              </label>
+            </div>
+          </section>
+
+          <section class="panel span-6" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Status and Alerts</h2>
+                <p>Operational state must be readable from a distance.</p>
+              </div>
+            </div>
+
+            <div class="pill-row">
+              <span class="status-pill is-cyan"><span class="signal-dot"></span>Prepared</span>
+              <span class="status-pill is-red"><span class="signal-dot"></span>Recording</span>
+              <span class="status-pill is-amber"><span class="signal-dot"></span>Stopping</span>
+              <span class="status-pill is-green"><span class="signal-dot"></span>Ready Export</span>
+            </div>
+
+            <div class="alert-stack" style="margin-top: 24px">
+              <div class="alert-banner alert-banner--critical">
+                <strong>Driver mismatch</strong>
+                <p>Selected profile expects 32 inputs, but the device currently exposes only 2.</p>
+              </div>
+              <div class="alert-banner alert-banner--warning">
+                <strong>Retention warning</strong>
+                <p>Client download artifacts expire in 24 hours. Download before cleanup removes the archive.</p>
+              </div>
+              <div class="alert-banner alert-banner--success">
+                <strong>Export ready</strong>
+                <p>Archive generated successfully. Session ZIP is ready for browser download.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel span-6" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Stats</h2>
+                <p>Fast scanning cards for operational telemetry.</p>
+              </div>
+            </div>
+
+            <div class="stat-grid">
+              <div class="stat-card">
+                <label>Free Disk</label>
+                <strong>812 GB</strong>
+              </div>
+              <div class="stat-card">
+                <label>Armed Tracks</label>
+                <strong>28</strong>
+              </div>
+              <div class="stat-card">
+                <label>Sample Rate</label>
+                <strong>48k</strong>
+              </div>
+              <div class="stat-card">
+                <label>Drop Count</label>
+                <strong>0</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel span-6" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Device Cards</h2>
+                <p>Input devices expose backend and capability at a glance.</p>
+              </div>
+            </div>
+
+            <div class="device-grid">
+              <article class="device-card is-selected">
+                <div class="card-head">
+                  <strong>X-USB ASIO Driver</strong>
+                  <span class="status-pill is-green"><span class="signal-dot"></span>Selected</span>
+                </div>
+                <div class="meta-list">
+                  <div class="meta-row"><span>Backend</span><strong class="mono">ASIO</strong></div>
+                  <div class="meta-row"><span>Inputs</span><strong class="mono">32</strong></div>
+                  <div class="meta-row"><span>Rates</span><strong class="mono">44.1 / 48k</strong></div>
+                </div>
+              </article>
+
+              <article class="device-card">
+                <div class="card-head">
+                  <strong>MacBook Microphone</strong>
+                  <span class="status-pill is-amber"><span class="signal-dot"></span>Unsupported</span>
+                </div>
+                <div class="meta-list">
+                  <div class="meta-row"><span>Backend</span><strong class="mono">CoreAudio</strong></div>
+                  <div class="meta-row"><span>Inputs</span><strong class="mono">2</strong></div>
+                  <div class="meta-row"><span>Rates</span><strong class="mono">44.1 / 48k</strong></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel span-6" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Profile Cards</h2>
+                <p>Profiles represent routing expectations, not auto-detected truth.</p>
+              </div>
+            </div>
+
+            <div class="profile-grid">
+              <article class="profile-card is-selected">
+                <div class="card-head">
+                  <strong>X32 32ch</strong>
+                  <span class="status-pill is-cyan"><span class="signal-dot"></span>Prepared</span>
+                </div>
+                <div class="meta-list">
+                  <div class="meta-row"><span>Expected inputs</span><strong class="mono">32</strong></div>
+                  <div class="meta-row"><span>Preferred rate</span><strong class="mono">48kHz</strong></div>
+                  <div class="meta-row"><span>Bit depth</span><strong class="mono">24-bit</strong></div>
+                </div>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-head">
+                  <strong>TF 34ch</strong>
+                  <span class="status-pill is-amber"><span class="signal-dot"></span>Mismatch</span>
+                </div>
+                <div class="meta-list">
+                  <div class="meta-row"><span>Expected inputs</span><strong class="mono">34</strong></div>
+                  <div class="meta-row"><span>Preferred rate</span><strong class="mono">48kHz</strong></div>
+                  <div class="meta-row"><span>Stereo bus</span><strong class="mono">ST L/R</strong></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel panel--console span-12" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2 style="color: var(--text-inverse)">Recorder State Strip</h2>
+                <p style="color: rgba(247, 241, 228, 0.72)">Global transport state plus high-value metadata.</p>
+              </div>
+              <div class="transport">
+                <button class="button button--primary">Start</button>
+                <button class="button button--danger">Stop</button>
+                <button class="button button--secondary">Create Export</button>
+              </div>
+            </div>
+
+            <div class="state-strip">
+              <div class="state-strip__row">
+                <div class="cluster">
+                  <span class="status-pill is-red"><span class="signal-dot"></span>Recording</span>
+                  <span class="status-pill is-cyan"><span class="signal-dot"></span>X32 32ch</span>
+                </div>
+                <strong class="mono" data-demo-time>00:13:24</strong>
+              </div>
+
+              <div class="state-strip__data">
+                <div class="meta-box">
+                  <label>Device</label>
+                  <strong>X-USB ASIO Driver</strong>
+                </div>
+                <div class="meta-box">
+                  <label>Session</label>
+                  <strong>sess_150501</strong>
+                </div>
+                <div class="meta-box">
+                  <label>Storage Target</label>
+                  <strong>server_local</strong>
+                </div>
+                <div class="meta-box">
+                  <label>Drop Count</label>
+                  <strong>0</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel panel--console span-12" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2 style="color: var(--text-inverse)">Meter Bank</h2>
+                <p style="color: rgba(247, 241, 228, 0.72)">Animated sample of live meter tiles.</p>
+              </div>
+              <span class="status-pill is-green">
+                <span class="signal-dot"></span>
+                8 visible channels
+              </span>
+            </div>
+
+            <div class="meter-bank">
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 01</strong><span>Kick</span></div>
+                  <span class="mono" data-meter-text>-12.4</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 26%"></div>
+                  <div class="meter-bar" data-meter style="height: 58%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 02</strong><span>Snare</span></div>
+                  <span class="mono" data-meter-text>-8.2</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 18%"></div>
+                  <div class="meter-bar" data-meter style="height: 72%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 03</strong><span>Bass</span></div>
+                  <span class="mono" data-meter-text>-15.0</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 31%"></div>
+                  <div class="meter-bar" data-meter style="height: 49%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 04</strong><span>Ac Gtr</span></div>
+                  <span class="mono" data-meter-text>-18.8</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 36%"></div>
+                  <div class="meter-bar" data-meter style="height: 44%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 05</strong><span>Piano</span></div>
+                  <span class="mono" data-meter-text>-11.9</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 27%"></div>
+                  <div class="meter-bar" data-meter style="height: 57%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 06</strong><span>Lead Vox</span></div>
+                  <span class="mono" data-meter-text>-6.4</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 14%"></div>
+                  <div class="meter-bar" data-meter style="height: 81%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 07</strong><span>Choir</span></div>
+                  <span class="mono" data-meter-text>-13.3</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 29%"></div>
+                  <div class="meter-bar" data-meter style="height: 53%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+
+              <article class="meter-tile">
+                <div class="meter-tile__top">
+                  <div class="meter-tile__label"><strong>USB 08</strong><span>Talkback</span></div>
+                  <span class="mono" data-meter-text>-24.1</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-hold" data-meter-hold style="top: 46%"></div>
+                  <div class="meter-bar" data-meter style="height: 33%"></div>
+                </div>
+                <div class="meter-scale"><span>-48</span><span>-12</span><span>0</span></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel span-12" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Track Rows</h2>
+                <p>Editing, armed state, metering, and status stay on one row on desktop.</p>
+              </div>
+              <div class="cluster">
+                <span class="status-pill is-green"><span class="signal-dot"></span>Armed 28</span>
+                <span class="status-pill is-amber"><span class="signal-dot"></span>4 hidden</span>
+              </div>
+            </div>
+
+            <div class="track-list">
+              <div class="track-row">
+                <div class="track-row__channel">USB 01</div>
+                <input class="field__control" type="text" value="Kick" />
+                <label class="toggle"><input checked type="checkbox" />Armed</label>
+                <div class="mono">-12.4 dB</div>
+                <div class="mini-meter"><div class="mini-meter__fill" style="width: 58%"></div></div>
+                <span class="status-pill is-red"><span class="signal-dot"></span>Live</span>
+              </div>
+
+              <div class="track-row">
+                <div class="track-row__channel">USB 02</div>
+                <input class="field__control" type="text" value="Snare" />
+                <label class="toggle"><input checked type="checkbox" />Armed</label>
+                <div class="mono">-8.2 dB</div>
+                <div class="mini-meter"><div class="mini-meter__fill" style="width: 74%"></div></div>
+                <span class="status-pill is-red"><span class="signal-dot"></span>Live</span>
+              </div>
+
+              <div class="track-row">
+                <div class="track-row__channel">USB 03</div>
+                <input class="field__control" type="text" value="Bass DI" />
+                <label class="toggle"><input checked type="checkbox" />Armed</label>
+                <div class="mono">-15.0 dB</div>
+                <div class="mini-meter"><div class="mini-meter__fill" style="width: 52%"></div></div>
+                <span class="status-pill is-cyan"><span class="signal-dot"></span>Prepared</span>
+              </div>
+
+              <div class="track-row">
+                <div class="track-row__channel">USB 04</div>
+                <input class="field__control" type="text" value="Spare Vocal" />
+                <label class="toggle"><input type="checkbox" />Armed</label>
+                <div class="mono">Muted</div>
+                <div class="mini-meter"><div class="mini-meter__fill" style="width: 18%"></div></div>
+                <span class="status-pill is-amber"><span class="signal-dot"></span>Disabled</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel span-7" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Session History</h2>
+                <p>Session cards combine capture state, storage target, and export status.</p>
+              </div>
+            </div>
+
+            <div class="session-grid">
+              <article class="session-card">
+                <div class="card-head">
+                  <div class="session-card__meta">
+                    <strong>Sunday Service AM</strong>
+                    <span class="mono">sess_20260406_150501</span>
+                  </div>
+                  <span class="status-pill is-green"><span class="signal-dot"></span>Completed</span>
+                </div>
+                <div class="session-card__list">
+                  <div class="meta-row"><span>Storage target</span><strong class="mono">server_local</strong></div>
+                  <div class="meta-row"><span>Tracks</span><strong class="mono">32</strong></div>
+                  <div class="meta-row"><span>Duration</span><strong class="mono">01:11:41</strong></div>
+                </div>
+                <div class="session-actions">
+                  <button class="button button--secondary">View Manifest</button>
+                  <button class="button button--ghost">Browse Tracks</button>
+                </div>
+              </article>
+
+              <article class="session-card">
+                <div class="card-head">
+                  <div class="session-card__meta">
+                    <strong>Youth Rehearsal</strong>
+                    <span class="mono">sess_20260405_191144</span>
+                  </div>
+                  <span class="status-pill is-amber"><span class="signal-dot"></span>Export Ready</span>
+                </div>
+                <div class="session-card__list">
+                  <div class="meta-row"><span>Storage target</span><strong class="mono">client_download</strong></div>
+                  <div class="meta-row"><span>Export</span><strong class="mono">ready</strong></div>
+                  <div class="meta-row"><span>Retention</span><strong class="mono">23h left</strong></div>
+                </div>
+                <div class="session-actions">
+                  <button class="button button--primary">Download ZIP</button>
+                  <button class="button button--quiet">Regenerate</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel span-5" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Empty + Modal</h2>
+                <p>Supportive states are defined before app wiring starts.</p>
+              </div>
+            </div>
+
+            <div class="empty-grid">
+              <div class="empty-state">
+                <span class="status-pill is-cyan" style="margin: 0 auto"><span class="signal-dot"></span>No device</span>
+                <strong>No multichannel input detected.</strong>
+                <p class="muted">Connect the mixer, verify the driver, and refresh device enumeration.</p>
+                <div class="button-row" style="justify-content: center">
+                  <button class="button button--secondary">Refresh Devices</button>
+                </div>
+              </div>
+
+              <div class="modal-demo">
+                <span class="status-pill is-red"><span class="signal-dot"></span>Confirm stop</span>
+                <strong>Stop recording now?</strong>
+                <p class="muted">The recorder will close current segments, finalize manifest data, and then start export if client download is selected.</p>
+                <div class="button-row">
+                  <button class="button button--danger">Stop and Finalize</button>
+                  <button class="button button--secondary">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="composite" class="panel span-12" data-stagger="5">
+            <div class="section-head">
+              <div class="section-head__title">
+                <h2>Composite Surface</h2>
+                <p>One-screen mock of the intended recorder application.</p>
+              </div>
+              <span class="demo-caption">This is the page section to align future implementation against.</span>
+            </div>
+
+            <div class="composite">
+              <div class="composite__left">
+                <div class="state-strip">
+                  <div class="state-strip__row">
+                    <div class="cluster">
+                      <span class="status-pill is-red"><span class="signal-dot"></span>Recording</span>
+                      <span class="status-pill is-cyan"><span class="signal-dot"></span>X32 32ch</span>
+                      <span class="status-pill is-green"><span class="signal-dot"></span>Disk Healthy</span>
+                    </div>
+                    <strong class="mono" data-demo-time>00:13:24</strong>
+                  </div>
+
+                  <div class="state-strip__data">
+                    <div class="meta-box">
+                      <label>Device</label>
+                      <strong>X-USB ASIO Driver</strong>
+                    </div>
+                    <div class="meta-box">
+                      <label>Profile</label>
+                      <strong>x32-32</strong>
+                    </div>
+                    <div class="meta-box">
+                      <label>Target</label>
+                      <strong>server_local</strong>
+                    </div>
+                    <div class="meta-box">
+                      <label>Armed Tracks</label>
+                      <strong>28</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel--ghost">
+                  <div class="section-head">
+                    <div class="section-head__title">
+                      <h3>Channel Surface</h3>
+                      <p>High-density list with editable labels and live mini-meters.</p>
+                    </div>
+                    <div class="transport">
+                      <button class="button button--primary">Start</button>
+                      <button class="button button--danger">Stop</button>
+                    </div>
+                  </div>
+
+                  <div class="track-list">
+                    <div class="track-row">
+                      <div class="track-row__channel">USB 01</div>
+                      <input class="field__control" type="text" value="Kick" />
+                      <label class="toggle"><input checked type="checkbox" />Armed</label>
+                      <div class="mono">-12.4 dB</div>
+                      <div class="mini-meter"><div class="mini-meter__fill" style="width: 58%"></div></div>
+                      <span class="status-pill is-red"><span class="signal-dot"></span>Live</span>
+                    </div>
+                    <div class="track-row">
+                      <div class="track-row__channel">USB 02</div>
+                      <input class="field__control" type="text" value="Snare" />
+                      <label class="toggle"><input checked type="checkbox" />Armed</label>
+                      <div class="mono">-8.2 dB</div>
+                      <div class="mini-meter"><div class="mini-meter__fill" style="width: 74%"></div></div>
+                      <span class="status-pill is-red"><span class="signal-dot"></span>Live</span>
+                    </div>
+                    <div class="track-row">
+                      <div class="track-row__channel">USB 06</div>
+                      <input class="field__control" type="text" value="Lead Vox" />
+                      <label class="toggle"><input checked type="checkbox" />Armed</label>
+                      <div class="mono">-6.4 dB</div>
+                      <div class="mini-meter"><div class="mini-meter__fill" style="width: 84%"></div></div>
+                      <span class="status-pill is-red"><span class="signal-dot"></span>Hot</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="composite__right">
+                <div class="panel panel--ghost">
+                  <div class="section-head">
+                    <div class="section-head__title">
+                      <h3>Session Setup</h3>
+                      <p>One place for target, title, and device context.</p>
+                    </div>
+                  </div>
+
+                  <div class="fields">
+                    <label class="field">
+                      <span class="field__label">Session Title</span>
+                      <input class="field__control" type="text" value="Sunday Service AM" />
+                    </label>
+                    <div class="field">
+                      <span class="field__label">Device</span>
+                      <div class="dropdown-select" data-dropdown-select>
+                        <button class="dropdown-select__trigger" type="button" aria-expanded="false">
+                          <span class="dropdown-select__value">X-USB ASIO Driver</span>
+                          <span class="dropdown-select__chevron" aria-hidden="true"></span>
+                        </button>
+                        <div class="dropdown-select__menu" role="listbox">
+                          <button class="dropdown-select__option is-selected" type="button" data-value="X-USB ASIO Driver">
+                            <strong>X-USB ASIO Driver</strong>
+                            <small>32 input multitrack path for X32 capture.</small>
+                          </button>
+                          <button class="dropdown-select__option" type="button" data-value="TF Rack USB">
+                            <strong>TF Rack USB</strong>
+                            <small>34 input target for TF-family routing.</small>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="segmented" data-segmented-group="composite-storage">
+                      <label class="segmented__item is-selected">
+                        <input checked name="composite-storage" type="radio" />
+                        <strong>Server Local</strong>
+                        <span>Keep all track files on the recorder PC.</span>
+                      </label>
+                      <label class="segmented__item">
+                        <input name="composite-storage" type="radio" />
+                        <strong>Client Download</strong>
+                        <span>Export a ZIP for browser download after stop.</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel panel--console">
+                  <div class="section-head">
+                    <div class="section-head__title">
+                      <h3 style="color: var(--text-inverse)">Hot Channels</h3>
+                      <p style="color: rgba(247, 241, 228, 0.72)">Compact meter strip for the right rail.</p>
+                    </div>
+                  </div>
+                  <div class="meter-bank meter-bank--rail">
+                    <article class="meter-tile">
+                      <div class="meter-tile__top">
+                        <div class="meter-tile__label"><strong>06</strong><span>Lead Vox</span></div>
+                        <span class="mono" data-meter-text>-6.2</span>
+                      </div>
+                      <div class="meter-track">
+                        <div class="meter-hold" data-meter-hold style="top: 16%"></div>
+                        <div class="meter-bar" data-meter style="height: 80%"></div>
+                      </div>
+                    </article>
+                    <article class="meter-tile">
+                      <div class="meter-tile__top">
+                        <div class="meter-tile__label"><strong>07</strong><span>Choir</span></div>
+                        <span class="mono" data-meter-text>-13.1</span>
+                      </div>
+                      <div class="meter-track">
+                        <div class="meter-hold" data-meter-hold style="top: 29%"></div>
+                        <div class="meter-bar" data-meter style="height: 54%"></div>
+                      </div>
+                    </article>
+                    <article class="meter-tile">
+                      <div class="meter-tile__top">
+                        <div class="meter-tile__label"><strong>11</strong><span>Piano</span></div>
+                        <span class="mono" data-meter-text>-10.8</span>
+                      </div>
+                      <div class="meter-track">
+                        <div class="meter-hold" data-meter-hold style="top: 22%"></div>
+                        <div class="meter-bar" data-meter style="height: 64%"></div>
+                      </div>
+                    </article>
+                    <article class="meter-tile">
+                      <div class="meter-tile__top">
+                        <div class="meter-tile__label"><strong>17</strong><span>Talkback</span></div>
+                        <span class="mono" data-meter-text>-24.0</span>
+                      </div>
+                      <div class="meter-track">
+                        <div class="meter-hold" data-meter-hold style="top: 43%"></div>
+                        <div class="meter-bar" data-meter style="height: 36%"></div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast-demo">
+      <span class="signal-dot" style="color: var(--signal-green)"></span>
+      Playground loaded with shared component styles.
+    </div>
+
+    <script src="./ui.js"></script>
+    <script src="./playground.js"></script>
+  </body>
+</html>

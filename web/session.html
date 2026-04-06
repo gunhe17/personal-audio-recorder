@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session Detail</title>
+    <link rel="stylesheet" href="./design-system.css" />
+    <link rel="stylesheet" href="./app.css" />
+  </head>
+  <body>
+    <div class="logic-screen logic-screen--session">
+      <header id="logic-windowbar" class="logic-windowbar" data-stagger="1"></header>
+      <main class="logic-main logic-main--session" data-stagger="2">
+        <section class="logic-arrange logic-arrange--session">
+          <div class="logic-arrange__top">
+            <div id="logic-arrange-corner" class="logic-arrange__corner logic-arrange__corner--session"></div>
+            <div class="logic-sidebar-resizer logic-sidebar-resizer--top" data-track-resizer role="separator" aria-orientation="vertical" aria-label="Resize track info panel" aria-valuemin="180" aria-valuemax="520" aria-valuenow="320" tabindex="0"></div>
+            <div id="logic-ruler" class="logic-ruler"></div>
+          </div>
+          <div class="logic-arrange__body">
+            <div id="logic-track-headers" class="logic-track-headers"></div>
+            <div class="logic-sidebar-resizer logic-sidebar-resizer--body" data-track-resizer aria-hidden="true"></div>
+            <div id="logic-track-lanes" class="logic-track-lanes"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./ui.js"></script>
+    <script src="./mock-data.js"></script>
+    <script src="./session-detail.js"></script>
+  </body>
+</html>
