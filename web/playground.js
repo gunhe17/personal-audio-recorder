@@ -1,101 +1,97 @@
 (function () {
-  const ui = window.RecorderUI;
+  function closeAll(except) {
+    document.querySelectorAll(".logic-playground [data-dropdown-select]").forEach(function (dropdown) {
+      if (dropdown === except) {
+        return;
+      }
 
-  if (!ui) {
-    return;
+      dropdown.classList.remove("is-open");
+      dropdown.querySelector(".dropdown-select__trigger")?.setAttribute("aria-expanded", "false");
+    });
   }
 
-  function bindMeters() {
-    const tiles = Array.from(document.querySelectorAll(".meter-tile"));
+  document.addEventListener("click", function (event) {
+    const target = event.target;
 
-    if (!tiles.length) {
+    if (!(target instanceof Element)) {
+      closeAll();
       return;
     }
 
-    tiles.forEach(function (tile) {
-      const meter = tile.querySelector("[data-meter]");
-      const hold = tile.querySelector("[data-meter-hold]");
-      const text = tile.querySelector("[data-meter-text]");
+    const trigger = target.closest(".logic-playground [data-dropdown-select] .dropdown-select__trigger");
 
-      tile.__meter = {
-        meter: meter,
-        hold: hold,
-        text: text,
-        peak: Math.random() * 42 + 30,
-        holdValue: 24 + Math.random() * 30
-      };
-    });
+    if (trigger) {
+      const dropdown = trigger.closest("[data-dropdown-select]");
+      const willOpen = !dropdown.classList.contains("is-open");
 
-    window.setInterval(function () {
-      tiles.forEach(function (tile) {
-        const state = tile.__meter;
-
-        if (!state) {
-          return;
-        }
-
-        const drift = (Math.random() - 0.44) * 18;
-        let nextPeak = state.peak + drift;
-
-        nextPeak = Math.max(12, Math.min(96, nextPeak));
-        state.peak = nextPeak;
-
-        if (nextPeak > state.holdValue) {
-          state.holdValue = nextPeak;
-        } else {
-          state.holdValue = Math.max(nextPeak + 4, state.holdValue - 1.2);
-        }
-
-        if (state.meter) {
-          state.meter.style.height = nextPeak.toFixed(1) + "%";
-        }
-
-        if (state.hold) {
-          state.hold.style.top = (100 - state.holdValue).toFixed(1) + "%";
-        }
-
-        if (state.text) {
-          const db = -1 * ((100 - nextPeak) / 100 * 42);
-          state.text.textContent = db.toFixed(1);
-        }
-      });
-    }, 240);
-  }
-
-  function bindDemoTimers() {
-    const timers = document.querySelectorAll("[data-demo-time]");
-    let elapsed = 13 * 60 + 24;
-
-    timers.forEach(function (node) {
-      node.textContent = ui.formatDuration(elapsed);
-    });
-
-    window.setInterval(function () {
-      elapsed += 1;
-
-      timers.forEach(function (node) {
-        node.textContent = ui.formatDuration(elapsed);
-      });
-    }, 1000);
-  }
-
-  function bindToast() {
-    const toast = document.querySelector(".toast-demo");
-
-    if (!toast) {
+      closeAll(dropdown);
+      dropdown.classList.toggle("is-open", willOpen);
+      trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
       return;
     }
 
-    window.setTimeout(function () {
-      toast.style.transition = "opacity 320ms ease, transform 320ms ease";
-      toast.style.opacity = "0";
-      toast.style.transform = "translateY(12px)";
-    }, 4200);
-  }
+    const option = target.closest(".logic-playground [data-dropdown-select] .dropdown-select__option");
 
-  ui.bindDropdowns();
-  ui.bindSegmentedGroups();
-  bindMeters();
-  bindDemoTimers();
-  bindToast();
+    if (option) {
+      const dropdown = option.closest("[data-dropdown-select]");
+      const value = option.textContent?.trim() || "";
+      const label = dropdown?.querySelector(".dropdown-select__value");
+
+      dropdown?.querySelectorAll(".dropdown-select__option").forEach(function (item) {
+        item.classList.toggle("is-selected", item === option);
+        item.setAttribute("aria-selected", item === option ? "true" : "false");
+      });
+
+      if (label) {
+        label.textContent = value;
+      }
+
+      closeAll();
+      return;
+    }
+
+    const toggle = target.closest(".logic-playground [data-track-toggle]");
+
+    if (toggle) {
+      const isPressed = toggle.getAttribute("aria-pressed") === "true";
+      toggle.setAttribute("aria-pressed", isPressed ? "false" : "true");
+      toggle.classList.toggle("is-active", !isPressed);
+      return;
+    }
+
+    if (!target.closest(".logic-playground [data-dropdown-select]")) {
+      closeAll();
+    }
+  });
+
+  document.addEventListener("input", function (event) {
+    const target = event.target;
+
+    if (!(target instanceof HTMLInputElement)) {
+      return;
+    }
+
+    if (target.classList.contains("logic-playground-strip-slider__input")) {
+      const slider = target.closest("[data-playground-slider]");
+
+      if (slider) {
+        slider.style.setProperty("--logic-slider-value", String((Number(target.value) || 0) / 100));
+      }
+      return;
+    }
+
+    if (target.classList.contains("logic-playground-strip-knob__input")) {
+      const knob = target.closest("[data-playground-knob]");
+
+      if (knob) {
+        knob.style.setProperty("--logic-knob-value", String((Number(target.value) || 0) / 100));
+      }
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeAll();
+    }
+  });
 })();

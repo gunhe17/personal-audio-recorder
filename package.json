@@ -1,0 +1,13 @@
+{
+  "name": "personal-audio-recorder",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node recorderd/src/main.js",
+    "dev": "node --watch recorderd/src/main.js"
+  },
+  "dependencies": {
+    "waveform-playlist": "^4.3.3",
+    "wavesurfer.js": "^7.12.5"
+  }
+}

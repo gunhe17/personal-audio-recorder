@@ -1,30 +1,30 @@
 :root {
-  --bg-canvas: #141619;
-  --bg-canvas-deep: #0d0f12;
-  --bg-panel: rgba(31, 35, 39, 0.94);
-  --bg-panel-strong: #171a1d;
-  --bg-elevated: #23282d;
+  --bg-canvas: #1b1b1c;
+  --bg-canvas-deep: #181818;
+  --bg-panel: #1e1e1e;
+  --bg-panel-strong: #252526;
+  --bg-elevated: #2d2d30;
   --bg-muted: rgba(255, 255, 255, 0.025);
   --border-soft: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.12);
-  --text-strong: #eef2f4;
-  --text-muted: #9aa3ab;
-  --text-inverse: #f7fafb;
-  --signal-red: #e17666;
-  --signal-amber: #cfb05d;
-  --signal-green: #78d85f;
-  --signal-cyan: #78d85f;
-  --meter-safe: #78d85f;
-  --meter-mid: #a9c85a;
-  --meter-hot: #d79249;
-  --meter-clip: #de6658;
+  --text-strong: #cccccc;
+  --text-muted: #9da1a6;
+  --text-inverse: #ffffff;
+  --signal-red: #f14c4c;
+  --signal-amber: #cca700;
+  --signal-green: #89d185;
+  --signal-cyan: #3794ff;
+  --meter-safe: #89d185;
+  --meter-mid: #d7ba7d;
+  --meter-hot: #d19a66;
+  --meter-clip: #f14c4c;
   --shadow-soft: 0 12px 24px rgba(0, 0, 0, 0.18);
   --shadow-panel: 0 16px 32px rgba(0, 0, 0, 0.28);
-  --shadow-focus: 0 0 0 2px rgba(120, 216, 95, 0.22);
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --shadow-focus: 0 0 0 2px rgba(55, 148, 255, 0.22);
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
   --radius-pill: 999px;
   --space-1: 4px;
   --space-2: 8px;
@@ -34,11 +34,11 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 72px;
-  --control-sm: 36px;
-  --control-md: 40px;
-  --bar-height: 56px;
-  --font-display: "SF Pro Display", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
-  --font-ui: "SF Pro Text", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  --control-sm: 30px;
+  --control-md: 34px;
+  --bar-height: 52px;
+  --font-display: "SF Pro Text", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-ui: "SF Pro Text", "Segoe UI", "Helvetica Neue", sans-serif;
   --font-mono: "SFMono-Regular", "Cascadia Mono", "Menlo", "Monaco", monospace;
 }
 
@@ -55,7 +55,7 @@ body {
   color: var(--text-strong);
   font-family: var(--font-ui);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 12%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 12%),
     linear-gradient(180deg, var(--bg-canvas) 0%, var(--bg-canvas-deep) 100%);
   min-height: 100vh;
 }
@@ -117,8 +117,8 @@ select {
   padding: 16px;
   color: var(--text-inverse);
   background:
-    linear-gradient(160deg, rgba(92, 199, 116, 0.05), transparent 45%),
-    linear-gradient(180deg, #171b19, #0f1211);
+    linear-gradient(160deg, rgba(55, 148, 255, 0.06), transparent 45%),
+    linear-gradient(180deg, #252526, #1e1e1e);
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: var(--shadow-soft);
 }
@@ -215,7 +215,7 @@ select {
   color: var(--text-inverse);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
-    linear-gradient(180deg, #141816, #0f1211);
+    linear-gradient(180deg, #252526, #1e1e1e);
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: var(--shadow-panel);
 }
@@ -384,9 +384,9 @@ select {
 }
 
 .button--primary {
-  color: #101410;
-  background: linear-gradient(180deg, #8be16d, #69c953);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  background: linear-gradient(180deg, #1177bb, #0e639c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .button--secondary {
@@ -397,8 +397,8 @@ select {
 
 .button--ghost {
   color: var(--text-strong);
-  background: rgba(120, 216, 95, 0.06);
-  border-color: rgba(92, 199, 116, 0.18);
+  background: rgba(55, 148, 255, 0.08);
+  border-color: rgba(55, 148, 255, 0.18);
 }
 
 .button--danger {
@@ -473,7 +473,7 @@ select {
 }
 
 .field__control::placeholder {
-  color: #738073;
+  color: #8b949e;
 }
 
 .dropdown-select {
@@ -529,10 +529,10 @@ select {
   display: grid;
   gap: 4px;
   padding: 6px;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid var(--border-strong);
   background:
-    linear-gradient(180deg, rgba(31, 37, 33, 0.98), rgba(22, 26, 24, 0.98));
+    linear-gradient(180deg, rgba(45, 45, 48, 0.98), rgba(37, 37, 38, 0.98));
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.38);
   opacity: 0;
   pointer-events: none;
@@ -547,7 +547,7 @@ select {
 }
 
 .dropdown-select.is-open .dropdown-select__trigger {
-  border-color: rgba(92, 199, 116, 0.32);
+  border-color: rgba(55, 148, 255, 0.32);
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -572,8 +572,8 @@ select {
 .dropdown-select__option:hover,
 .dropdown-select__option:focus-visible {
   outline: none;
-  background: rgba(92, 199, 116, 0.08);
-  border-color: rgba(92, 199, 116, 0.16);
+  background: rgba(55, 148, 255, 0.08);
+  border-color: rgba(55, 148, 255, 0.16);
 }
 
 .dropdown-select__option small {
@@ -583,8 +583,8 @@ select {
 }
 
 .dropdown-select__option.is-selected {
-  background: rgba(92, 199, 116, 0.1);
-  border-color: rgba(92, 199, 116, 0.22);
+  background: rgba(55, 148, 255, 0.12);
+  border-color: rgba(55, 148, 255, 0.22);
 }
 
 .segmented {
@@ -600,7 +600,7 @@ select {
   align-content: start;
   padding: 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
 }
@@ -622,9 +622,9 @@ select {
 }
 
 .segmented__item.is-selected {
-  border-color: rgba(92, 199, 116, 0.42);
-  background: rgba(92, 199, 116, 0.08);
-  box-shadow: 0 12px 24px rgba(92, 199, 116, 0.08);
+  border-color: rgba(55, 148, 255, 0.42);
+  background: rgba(55, 148, 255, 0.1);
+  box-shadow: 0 12px 24px rgba(55, 148, 255, 0.08);
 }
 
 .toggle {
@@ -660,7 +660,7 @@ select {
 }
 
 .toggle input:checked {
-  background: var(--signal-green);
+  background: var(--signal-cyan);
 }
 
 .toggle input:checked::after {
@@ -690,8 +690,8 @@ select {
 
 .is-cyan {
   color: var(--signal-cyan);
-  background: rgba(92, 199, 116, 0.1);
-  border-color: rgba(92, 199, 116, 0.18);
+  background: rgba(55, 148, 255, 0.12);
+  border-color: rgba(55, 148, 255, 0.18);
 }
 
 .is-red {
@@ -708,8 +708,8 @@ select {
 
 .is-green {
   color: var(--signal-green);
-  background: rgba(92, 199, 116, 0.12);
-  border-color: rgba(92, 199, 116, 0.22);
+  background: rgba(137, 209, 133, 0.12);
+  border-color: rgba(137, 209, 133, 0.22);
 }
 
 .alert-stack {
@@ -750,15 +750,15 @@ select {
 }
 
 .alert-banner--info {
-  color: #9ce5ab;
-  background: rgba(92, 199, 116, 0.12);
-  border-color: rgba(92, 199, 116, 0.24);
+  color: #9cdcfe;
+  background: rgba(55, 148, 255, 0.12);
+  border-color: rgba(55, 148, 255, 0.24);
 }
 
 .alert-banner--success {
-  color: #9ce5ab;
-  background: rgba(92, 199, 116, 0.12);
-  border-color: rgba(92, 199, 116, 0.24);
+  color: #b5cea8;
+  background: rgba(137, 209, 133, 0.12);
+  border-color: rgba(137, 209, 133, 0.24);
 }
 
 .stat-grid {
@@ -809,9 +809,9 @@ select {
 .device-card.is-selected,
 .profile-card.is-selected,
 .storage-card.is-selected {
-  border-color: rgba(92, 199, 116, 0.4);
-  box-shadow: 0 14px 28px rgba(92, 199, 116, 0.08);
-  background: rgba(92, 199, 116, 0.08);
+  border-color: rgba(55, 148, 255, 0.4);
+  box-shadow: 0 14px 28px rgba(55, 148, 255, 0.08);
+  background: rgba(55, 148, 255, 0.08);
 }
 
 .card-head {
@@ -847,7 +847,7 @@ select {
   color: var(--text-inverse);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
-    linear-gradient(180deg, #151917, #0f1211);
+    linear-gradient(180deg, #252526, #1e1e1e);
   box-shadow: var(--shadow-soft);
 }
 
@@ -1021,7 +1021,7 @@ select {
 .session-card {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.05)),
-    linear-gradient(120deg, rgba(92, 199, 116, 0.06), transparent);
+    linear-gradient(120deg, rgba(55, 148, 255, 0.06), transparent);
 }
 
 .session-card__meta {
@@ -1076,7 +1076,7 @@ select {
   position: absolute;
   inset: 14px;
   border-radius: 10px;
-  border: 1px solid rgba(92, 199, 116, 0.14);
+  border: 1px solid rgba(55, 148, 255, 0.14);
   pointer-events: none;
 }
 

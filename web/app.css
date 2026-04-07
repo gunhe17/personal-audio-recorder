@@ -1,61 +1,3 @@
-.landing-shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-}
-
-.landing-card {
-  width: min(560px, 100%);
-  display: grid;
-  gap: var(--space-5);
-  justify-items: center;
-  padding: clamp(24px, 4vw, 40px) 0;
-  text-align: center;
-}
-
-.landing-card__eyebrow {
-  display: grid;
-  place-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-soft);
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.landing-card__copy {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: center;
-}
-
-.landing-card__copy h1 {
-  margin: 0;
-  max-width: none;
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 4.8rem);
-  line-height: 0.94;
-  letter-spacing: -0.05em;
-  white-space: nowrap;
-}
-
-.landing-card__copy p {
-  margin: 0;
-  max-width: 34ch;
-  color: var(--text-muted);
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-.landing-card__cta {
-  min-width: 172px;
-  justify-self: center;
-}
-
 .session-screen {
   min-height: 100vh;
   display: grid;
@@ -63,6 +5,1586 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 12%),
     linear-gradient(180deg, #16191d 0%, #0f1215 100%);
+}
+
+/* Final session editor pass */
+
+body.session-page .logic-screen.logic-screen--session {
+  grid-template-rows: auto minmax(0, 1fr);
+  --logic-sidebar-width: 352px;
+  --logic-resizer-width: 9px;
+}
+
+body.session-page .logic-screen--session .logic-windowbar {
+  display: block;
+  padding: 0;
+  background: linear-gradient(180deg, #d1d1d1 0%, #b9b9b9 100%);
+  border-bottom: 1px solid #2f2f2f;
+}
+
+body.session-page .logic-screen--session .logic-main {
+  grid-template-rows: minmax(0, 1fr);
+  background: #303030;
+}
+
+body.session-page .logic-shellbar__row--top {
+  grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
+}
+
+body.session-page .logic-shellbar__row--bottom {
+  background: linear-gradient(180deg, #575757 0%, #4d4d4d 100%);
+}
+
+body.session-page .logic-toolbar--session {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+body.session-page .logic-screen--session .logic-arrange {
+  grid-template-rows: 36px minmax(0, 1fr);
+  border-top: 0;
+  background: #3b3b3b;
+}
+
+body.session-page .logic-screen--session .logic-arrange__top,
+body.session-page .logic-screen--session .logic-arrange__body {
+  grid-template-columns: var(--logic-sidebar-width) var(--logic-resizer-width) minmax(0, 1fr);
+}
+
+body.session-page .logic-screen--session .logic-arrange__corner--session {
+  padding: 0 10px;
+  border-right: 1px solid #2d2d2d;
+  background: linear-gradient(180deg, #585858 0%, #505050 100%);
+}
+
+body.session-page .logic-screen--session .logic-ruler {
+  background: #383838;
+}
+
+body.session-page .logic-screen--session .logic-ruler__grid {
+  min-height: 36px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
+  background-size: calc(100% / var(--logic-columns)) 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-track-headers {
+  grid-auto-rows: 62px;
+  background: #6d6d6d;
+}
+
+body.session-page .logic-screen--session .logic-track-lanes {
+  grid-auto-rows: 62px;
+  background: #2b2b2b;
+}
+
+body.session-page .logic-screen--session .logic-track-header--session {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #787878 0%, #6e6e6e 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-screen--session .logic-track-header--session.is-selected {
+  background: linear-gradient(180deg, #7f7f7f 0%, #747474 100%);
+  box-shadow: inset 2px 0 0 #cfcfcf, inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-screen--session .logic-track-name__display--session,
+body.session-page .logic-screen--session .logic-track-name__input--session {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body.session-page .logic-screen--session .logic-track-input-badge__trigger {
+  min-width: 54px;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  color: #f4f4f4;
+  box-shadow: none;
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session .logic-track-lane__grid {
+  min-height: 62px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #2b2b2b;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #313131;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+/* Logic-style session editor overrides */
+
+body.session-page {
+  background: #111111;
+}
+
+body.session-page .logic-screen.logic-screen--session {
+  --logic-sidebar-width: 352px;
+  --logic-resizer-width: 9px;
+  --session-bg: #232323;
+  --session-surface: #3f3f3f;
+  --session-surface-2: #686868;
+  --session-surface-3: #2c2c2c;
+  --session-border: rgba(0, 0, 0, 0.28);
+  --session-border-strong: rgba(255, 255, 255, 0.08);
+  --session-text: #ececec;
+  --session-text-muted: #cbcbcb;
+  --session-blue: #2a7cff;
+  --session-blue-strong: #1d67e0;
+  --session-blue-soft: rgba(42, 124, 255, 0.18);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: #232323;
+}
+
+body.session-page .logic-screen--session .logic-windowbar {
+  display: block;
+  padding: 0;
+  background: linear-gradient(180deg, #d1d1d1 0%, #b9b9b9 100%);
+  border-bottom: 1px solid #2f2f2f;
+}
+
+body.session-page .logic-screen--session .logic-main {
+  background: #303030;
+}
+
+body.session-page .logic-shellbar {
+  display: grid;
+  grid-template-rows: 48px 34px;
+}
+
+body.session-page .logic-shellbar__row {
+  min-width: 0;
+  display: grid;
+  align-items: center;
+}
+
+body.session-page .logic-shellbar__row--top {
+  grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
+  gap: 14px;
+  padding: 0 14px;
+}
+
+body.session-page .logic-shellbar__row--bottom {
+  padding: 0 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, #575757 0%, #4d4d4d 100%);
+}
+
+body.session-page .logic-shellbar__cluster {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.session-page .logic-shellbar__cluster--right {
+  justify-content: flex-end;
+}
+
+body.session-page .logic-toolgroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.session-page .logic-toolgroup--soft {
+  background: transparent;
+}
+
+body.session-page .logic-toolicon-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #494949;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+body.session-page .logic-toolicon-btn:hover:not(:disabled),
+body.session-page .logic-toolicon-btn:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+body.session-page .logic-toolicon-btn:disabled {
+  opacity: 0.82;
+  cursor: default;
+}
+
+body.session-page .logic-toolicon-btn--small {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+body.session-page .logic-toolicon-btn--accent {
+  color: #ffffff;
+  background: linear-gradient(180deg, #3383ff 0%, #1d67e0 100%);
+  border-color: rgba(0, 0, 0, 0.24);
+}
+
+body.session-page .logic-toolicon-btn.is-selected {
+  color: #ffffff;
+  background: linear-gradient(180deg, #3383ff 0%, #236adf 100%);
+}
+
+body.session-page .logic-ui-glyph {
+  position: relative;
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+}
+
+body.session-page .logic-ui-glyph--sliders::before,
+body.session-page .logic-ui-glyph--settings::before,
+body.session-page .logic-ui-glyph--sliders::after,
+body.session-page .logic-ui-glyph--meters::before,
+body.session-page .logic-ui-glyph--meters::after,
+body.session-page .logic-ui-glyph--pencil::before,
+body.session-page .logic-ui-glyph--help::before,
+body.session-page .logic-ui-glyph--sun::before,
+body.session-page .logic-ui-glyph--panels::before,
+body.session-page .logic-ui-glyph--grid::before,
+body.session-page .logic-ui-glyph--tracks::before,
+body.session-page .logic-ui-glyph--pointer::before,
+body.session-page .logic-ui-glyph--download::before,
+body.session-page .logic-ui-glyph--plus::before,
+body.session-page .logic-ui-glyph--duplicate::before,
+body.session-page .logic-ui-glyph--audio::before {
+  content: "";
+  position: absolute;
+}
+
+body.session-page .logic-ui-glyph--sliders::before {
+  inset: 2px 5px 2px 1px;
+  border-left: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+
+body.session-page .logic-ui-glyph--sliders::after {
+  inset: 1px 1px auto auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: -6px 4px 0 currentColor, 0 8px 0 currentColor;
+}
+
+body.session-page .logic-ui-glyph--settings::before {
+  inset: 2px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  box-shadow:
+    0 -5px 0 -4px currentColor,
+    0 5px 0 -4px currentColor,
+    5px 0 0 -4px currentColor,
+    -5px 0 0 -4px currentColor,
+    3.5px 3.5px 0 -4px currentColor,
+    -3.5px 3.5px 0 -4px currentColor,
+    3.5px -3.5px 0 -4px currentColor,
+    -3.5px -3.5px 0 -4px currentColor;
+}
+
+body.session-page .logic-ui-glyph--settings::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+body.session-page .logic-ui-glyph--panels::before {
+  inset: 2px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  box-shadow: 6px 0 0 -4px currentColor;
+}
+
+body.session-page .logic-ui-glyph--help::before {
+  inset: 1px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+body.session-page .logic-ui-glyph--help::after {
+  content: "?";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+body.session-page .logic-ui-glyph--sun::before {
+  inset: 3px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+body.session-page .logic-ui-glyph--meters::before {
+  left: 1px;
+  right: 1px;
+  top: 3px;
+  height: 2px;
+  background: currentColor;
+  box-shadow: 0 4px 0 currentColor;
+}
+
+body.session-page .logic-ui-glyph--meters::after {
+  width: 3px;
+  height: 7px;
+  left: 2px;
+  top: 1px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 5px 3px 0 currentColor, 10px -1px 0 currentColor;
+}
+
+body.session-page .logic-ui-glyph--pencil::before {
+  width: 10px;
+  height: 2px;
+  top: 5px;
+  left: 1px;
+  background: currentColor;
+  transform: rotate(-38deg);
+}
+
+body.session-page .logic-ui-glyph--grid::before,
+body.session-page .logic-ui-glyph--tracks::before {
+  inset: 1px;
+  background:
+    linear-gradient(currentColor, currentColor) 0 0 / 3px 3px,
+    linear-gradient(currentColor, currentColor) 5px 0 / 3px 3px,
+    linear-gradient(currentColor, currentColor) 10px 0 / 3px 3px,
+    linear-gradient(currentColor, currentColor) 0 5px / 3px 3px,
+    linear-gradient(currentColor, currentColor) 5px 5px / 3px 3px,
+    linear-gradient(currentColor, currentColor) 10px 5px / 3px 3px,
+    linear-gradient(currentColor, currentColor) 0 10px / 3px 3px,
+    linear-gradient(currentColor, currentColor) 5px 10px / 3px 3px,
+    linear-gradient(currentColor, currentColor) 10px 10px / 3px 3px;
+  background-repeat: no-repeat;
+}
+
+body.session-page .logic-ui-glyph--tracks::before {
+  background:
+    linear-gradient(currentColor, currentColor) 0 1px / 13px 2px,
+    linear-gradient(currentColor, currentColor) 0 6px / 13px 2px,
+    linear-gradient(currentColor, currentColor) 0 11px / 13px 2px;
+  background-repeat: no-repeat;
+}
+
+body.session-page .logic-ui-glyph--pointer::before {
+  width: 0;
+  height: 0;
+  border-top: 8px solid currentColor;
+  border-right: 6px solid transparent;
+  left: 2px;
+  top: 1px;
+}
+
+body.session-page .logic-ui-glyph--download::before {
+  left: 5px;
+  top: 1px;
+  width: 2px;
+  height: 7px;
+  background: currentColor;
+}
+
+body.session-page .logic-ui-glyph--download::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+body.session-page .logic-ui-glyph--plus::before {
+  inset: 5px 1px;
+  background: currentColor;
+}
+
+body.session-page .logic-ui-glyph--plus::after {
+  content: "";
+  position: absolute;
+  inset: 1px 5px;
+  background: currentColor;
+}
+
+body.session-page .logic-ui-glyph--duplicate::before {
+  inset: 3px 1px 1px 3px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+body.session-page .logic-ui-glyph--duplicate::after {
+  content: "";
+  position: absolute;
+  inset: 1px 3px 3px 1px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+body.session-page .logic-ui-glyph--audio::before {
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, transparent 0 15%, rgba(255,255,255,0.9) 15% 18%, transparent 18% 22%, rgba(255,255,255,0.9) 22% 26%, transparent 26% 33%, rgba(255,255,255,0.9) 33% 37%, transparent 37% 100%);
+}
+
+body.session-page .logic-lcd {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 6px 12px 8px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2f3240 0%, #232732 100%);
+  color: #f6f7fb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body.session-page .logic-lcd__top,
+body.session-page .logic-lcd__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+body.session-page .logic-lcd__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d8dce5;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+body.session-page .logic-lcd__digits {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+body.session-page .logic-lcd__meta {
+  justify-content: flex-start;
+  color: #aeb5c4;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+body.session-page .logic-status-chip {
+  min-height: 16px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+body.session-page .logic-status-chip--ready {
+  color: #d8dde8;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.session-page .logic-status-chip--recording {
+  background: #d94d42;
+}
+
+body.session-page .logic-output-meter--mini {
+  width: 42px;
+  height: 14px;
+  padding: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.06));
+}
+
+body.session-page .logic-output-meter--mini span {
+  display: block;
+  height: 100%;
+  width: calc(var(--logic-output-level, 0.2) * 100%);
+  border-radius: 3px;
+}
+
+body.session-page .logic-windowbar-export {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.14);
+  color: #4d4d4d;
+  text-transform: capitalize;
+}
+
+body.session-page .logic-toolbar--session {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body.session-page .logic-menu-btn {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.08));
+  color: #f0f0f0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: default;
+}
+
+body.session-page .logic-toolbar__left,
+body.session-page .logic-toolbar__center,
+body.session-page .logic-toolbar__right {
+  gap: 6px;
+}
+
+body.session-page .logic-toolbar-display,
+body.session-page .logic-toolbar-stat {
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.12);
+  color: #eeeeee;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+body.session-page .logic-toolbar-display strong {
+  font-weight: 700;
+}
+
+body.session-page .logic-screen--session .logic-transport--session {
+  gap: 0;
+}
+
+body.session-page .logic-screen--session .logic-transport__buttons {
+  padding: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.06));
+}
+
+body.session-page .logic-screen--session .logic-transport-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+}
+
+body.session-page .logic-screen--session .logic-main {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+body.session-page .logic-screen--session .logic-arrange {
+  grid-template-rows: 36px minmax(0, 1fr);
+  border-top: 0;
+  background: #3b3b3b;
+}
+
+body.session-page .logic-screen--session .logic-arrange__top,
+body.session-page .logic-screen--session .logic-arrange__body {
+  grid-template-columns: var(--logic-sidebar-width) var(--logic-resizer-width) minmax(0, 1fr);
+}
+
+body.session-page .logic-screen--session .logic-arrange__top {
+  background: #434343;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+body.session-page .logic-screen--session .logic-arrange__body {
+  background: #2e2e2e;
+}
+
+body.session-page .logic-screen--session .logic-arrange__corner--session {
+  padding: 0 10px;
+  border-right: 1px solid #2d2d2d;
+  background: linear-gradient(180deg, #585858 0%, #505050 100%);
+}
+
+body.session-page .logic-arrange__corner-tools {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.session-page .logic-arrange__corner-labels {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.session-page .logic-arrange__corner-label {
+  color: #e8e8e8;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+body.session-page .logic-screen--session .logic-ruler {
+  background: #383838;
+}
+
+body.session-page .logic-screen--session .logic-ruler__grid {
+  min-height: 36px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
+  background-size: calc(100% / var(--logic-columns)) 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-ruler__grid::after {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body.session-page .logic-screen--session .logic-ruler__grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc((100% / var(--logic-columns)) * var(--logic-playhead));
+  width: 12px;
+  height: 10px;
+  transform: translateX(-50%);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body.session-page .logic-screen--session .logic-ruler__cell {
+  padding: 0 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+body.session-page .logic-screen--session .logic-ruler__label {
+  color: #f0f0f0;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+body.session-page .logic-sidebar-resizer {
+  background: #2c2c2c;
+}
+
+body.session-page .logic-sidebar-resizer::before,
+body.session-page .logic-sidebar-resizer::after {
+  display: none;
+}
+
+body.session-page .logic-screen--session .logic-track-headers {
+  grid-auto-rows: 62px;
+  background: #6d6d6d;
+  border-right: 1px solid #2d2d2d;
+}
+
+body.session-page .logic-screen--session .logic-track-lanes {
+  grid-auto-rows: 62px;
+  background: #2b2b2b;
+}
+
+body.session-page .logic-screen--session .logic-track-header--session {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #787878 0%, #6e6e6e 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-screen--session .logic-track-header--session.is-selected {
+  background: linear-gradient(180deg, #7f7f7f 0%, #747474 100%);
+  box-shadow: inset 2px 0 0 #cfcfcf, inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-track-strip__index {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid rgba(0, 0, 0, 0.16);
+  color: #f4f4f4;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+body.session-page .logic-track-strip__body {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  align-content: center;
+  padding: 6px 10px 6px 12px;
+}
+
+body.session-page .logic-track-strip__title-row,
+body.session-page .logic-track-strip__controls-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.session-page .logic-track-strip__icon {
+  width: 28px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #246de1 0%, #1d58bf 100%);
+  color: #ffffff;
+}
+
+body.session-page .logic-screen--session .logic-track-name--session,
+body.session-page .logic-screen--session .logic-track-input-badge {
+  min-width: 0;
+}
+
+body.session-page .logic-screen--session .logic-track-name__display--session,
+body.session-page .logic-screen--session .logic-track-name__input--session {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body.session-page .logic-screen--session .logic-track-name__display--session:focus-visible,
+body.session-page .logic-screen--session .logic-track-name__input--session:focus {
+  outline: none;
+  color: #ffffff;
+}
+
+body.session-page .logic-screen--session .logic-track-input-badge__trigger {
+  min-width: 54px;
+  min-height: 20px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  color: #f4f4f4;
+  box-shadow: none;
+  font-size: 11px;
+}
+
+body.session-page .logic-screen--session .logic-track-select__menu {
+  min-width: 64px;
+  z-index: 40;
+}
+
+body.session-page .logic-track-strip__toggle {
+  min-width: 22px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f0f0f0;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+body.session-page .logic-track-strip__toggle.is-active,
+body.session-page .logic-track-strip__toggle[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+body.session-page .logic-track-strip__toggle--record.is-active {
+  color: #f25d50;
+}
+
+body.session-page .logic-track-strip__toggle--record.is-recording {
+  color: #ffffff;
+  background: #d94d42;
+}
+
+body.session-page .logic-track-strip__slider {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 84px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.34), rgba(255, 255, 255, 0.06));
+  overflow: hidden;
+}
+
+body.session-page .logic-track-strip__slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(max(14%, var(--logic-meter-level, 0) * 100%));
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4b4b4b 0%, #a8a8a8 100%);
+}
+
+body.session-page .logic-track-strip__knob {
+  position: relative;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  background: linear-gradient(180deg, #d9d9d9 0%, #b9b9b9 100%);
+}
+
+body.session-page .logic-track-strip__knob-indicator {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 2px;
+  height: 7px;
+  border-radius: 999px;
+  background: #4a4a4a;
+  transform-origin: 50% 8px;
+  transform: translateX(-50%) rotate(calc(-50deg + (var(--logic-meter-level, 0) * 100deg)));
+}
+
+body.session-page .logic-track-strip__slider.is-clipped,
+body.session-page .logic-track-strip__knob.is-clipped {
+  box-shadow: 0 0 0 1px rgba(217, 77, 66, 0.4);
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session .logic-track-lane__grid {
+  min-height: 62px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #2b2b2b;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #313131;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-audio-display,
+body.session-page .logic-screen--session .logic-region--display {
+  min-height: 30px;
+  border-radius: 0;
+}
+
+body.session-page .logic-screen--session .logic-audio-display {
+  border: 1px solid rgba(59, 120, 222, 0.16);
+  background: rgba(54, 108, 206, 0.06);
+}
+
+body.session-page .logic-screen--session .logic-region--blue,
+body.session-page .logic-screen--session .logic-region--cyan,
+body.session-page .logic-screen--session .logic-region--indigo {
+  background: linear-gradient(180deg, rgba(82, 133, 223, 0.62), rgba(56, 102, 189, 0.62));
+  border-color: rgba(112, 163, 255, 0.24);
+}
+
+body.session-page .logic-screen--session .logic-region__wave,
+body.session-page .logic-screen--session .logic-audio-display__wave {
+  gap: 1px;
+}
+
+body.session-page .logic-screen--session .logic-waveform__bar {
+  border-radius: 0;
+}
+
+/* Session redesign overrides */
+
+.logic-screen.logic-screen--session {
+  grid-template-rows: 64px minmax(0, 1fr);
+}
+
+.logic-screen--session .logic-main {
+  background: var(--session-bg);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0;
+}
+
+.logic-screen--session .logic-arrange {
+  grid-template-rows: 36px minmax(0, 1fr);
+  border-top-color: var(--session-border-strong);
+}
+
+.logic-screen--session .logic-arrange__corner--session {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.logic-screen--session .logic-arrange__corner-labels {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 52px 26px;
+  gap: 10px;
+  align-items: center;
+}
+
+.logic-screen--session .logic-arrange__corner-label {
+  min-width: 0;
+  color: var(--session-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.logic-screen--session .logic-windowbar {
+  grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #2a2a2c 0%, #252526 100%);
+}
+
+.logic-screen--session .logic-windowbar__side {
+  min-width: 0;
+}
+
+.logic-screen--session .logic-windowbar__side--identity {
+  justify-content: flex-start;
+}
+
+.logic-screen--session .logic-windowbar__side--right {
+  justify-content: flex-end;
+}
+
+.logic-screen--session .logic-windowbar__identity,
+.logic-screen--session .logic-windowbar__summary {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.logic-screen--session .logic-windowbar__summary {
+  justify-items: end;
+}
+
+.logic-screen--session .logic-windowbar__title-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logic-screen--session .logic-windowbar__title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f3f3f3;
+}
+
+.logic-screen--session .logic-windowbar__subline {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--session-text-muted);
+  font-size: 11px;
+}
+
+.logic-screen--session .logic-status-chip {
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border: 1px solid var(--session-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.logic-screen--session .logic-status-chip--ready {
+  color: #d7dbe0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.logic-screen--session .logic-status-chip--recording {
+  color: #ffffff;
+  background: rgba(241, 76, 76, 0.88);
+  border-color: rgba(241, 76, 76, 0.94);
+}
+
+.logic-screen--session .logic-status-chip--stopping {
+  color: #1f1f1f;
+  background: rgba(204, 167, 0, 0.82);
+  border-color: rgba(204, 167, 0, 0.9);
+}
+
+.logic-screen--session .logic-status-chip--saved {
+  color: #d4f8dd;
+  background: rgba(53, 122, 78, 0.72);
+  border-color: rgba(137, 209, 133, 0.34);
+}
+
+.logic-screen--session .logic-status-chip--failed {
+  color: #ffcccc;
+  background: rgba(241, 76, 76, 0.14);
+  border-color: rgba(241, 76, 76, 0.42);
+}
+
+.logic-screen--session .logic-windowbar__metrics,
+.logic-screen--session .logic-windowbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.logic-screen--session .logic-windowbar__metric {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--session-border);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--session-text-muted);
+  font-size: 11px;
+}
+
+.logic-screen--session .logic-windowbar__metric span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.logic-screen--session .logic-windowbar__metric strong {
+  color: var(--session-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.logic-screen--session .logic-windowbar__metric.is-warning {
+  border-color: rgba(241, 76, 76, 0.26);
+  background: rgba(241, 76, 76, 0.08);
+}
+
+.logic-screen--session .logic-windowbar__metric.is-warning strong {
+  color: #ffd1d1;
+}
+
+.logic-screen--session .logic-windowbar__timer {
+  min-width: 108px;
+  text-align: center;
+  color: #f8f8f8;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.logic-screen--session .logic-windowbar-settings-btn,
+.logic-screen--session .logic-windowbar-action {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #252526;
+  color: #cccccc;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logic-screen--session .logic-windowbar-action--primary {
+  background: linear-gradient(180deg, #1177bb 0%, #0e639c 100%);
+  border-color: rgba(55, 148, 255, 0.44);
+  color: #ffffff;
+}
+
+.logic-screen--session .logic-windowbar-export {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid var(--session-border);
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--session-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.logic-screen--session .logic-windowbar-export--ready {
+  color: #d4f8dd;
+  border-color: rgba(137, 209, 133, 0.34);
+  background: rgba(53, 122, 78, 0.16);
+}
+
+.logic-screen--session .logic-windowbar-export--pending {
+  color: #f0dd95;
+  border-color: rgba(204, 167, 0, 0.28);
+  background: rgba(204, 167, 0, 0.12);
+}
+
+.logic-screen--session .logic-windowbar-export--failed {
+  color: #ffd1d1;
+  border-color: rgba(241, 76, 76, 0.28);
+  background: rgba(241, 76, 76, 0.1);
+}
+
+.logic-screen--session .logic-transport--session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logic-screen--session .logic-transport__buttons {
+  padding: 2px 3px;
+}
+
+.logic-screen--session .logic-transport-btn--record {
+  background: linear-gradient(180deg, #4a4a4d 0%, #323236 100%);
+}
+
+.logic-screen--session .logic-transport-btn--record .logic-shape--record {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f14c4c;
+}
+
+.logic-screen--session .logic-transport-btn--record.is-recording {
+  background: linear-gradient(180deg, #ee5a4d 0%, #d6473d 100%);
+  border-color: rgba(241, 76, 76, 0.76);
+}
+
+.logic-screen--session .logic-transport-btn--record.is-recording .logic-shape--record {
+  background: #ffffff;
+}
+
+.logic-screen--session .logic-ruler__grid {
+  min-height: 36px;
+}
+
+.logic-screen--session .logic-ruler__cell {
+  padding: 0 12px;
+}
+
+.logic-screen--session .logic-ruler__label {
+  font-size: 12px;
+}
+
+.logic-screen--session .logic-track-headers {
+  position: relative;
+  z-index: 3;
+  overflow-y: auto;
+  overflow-x: visible;
+  grid-auto-rows: 52px;
+}
+
+.logic-screen--session .logic-track-lanes {
+  grid-auto-rows: 52px;
+}
+
+.logic-screen--session .logic-track-header--session {
+  position: relative;
+  z-index: 1;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 52px 24px;
+  gap: 10px;
+  padding: 7px 10px;
+  background: #252526;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.logic-screen--session .logic-track-header--session.is-selected {
+  z-index: 6;
+  background: linear-gradient(180deg, rgba(55, 148, 255, 0.1), rgba(55, 148, 255, 0.03));
+  box-shadow: inset 3px 0 0 rgba(55, 148, 255, 0.85);
+}
+
+.logic-screen--session .logic-track-input-badge,
+.logic-screen--session .logic-track-name--session {
+  min-width: 0;
+}
+
+.logic-screen--session .logic-track-input-badge__trigger,
+.logic-screen--session .logic-track-name__display--session,
+.logic-screen--session .logic-track-name__input--session {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  background: #1f1f1f;
+  color: var(--session-text);
+  font-size: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.logic-screen--session .logic-track-input-badge__trigger {
+  justify-content: space-between;
+}
+
+.logic-screen--session .logic-track-name__display--session,
+.logic-screen--session .logic-track-name__input--session {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.logic-screen--session .logic-track-header--session:not(.is-selected) .logic-track-input-badge__trigger,
+.logic-screen--session .logic-track-header--session:not(.is-selected) .logic-track-name__display--session,
+.logic-screen--session .logic-track-header--session:not(.is-selected) .logic-track-name__input--session {
+  border-color: rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.logic-screen--session .logic-track-input-badge__trigger:focus-visible,
+.logic-screen--session .logic-track-name__display--session:focus-visible,
+.logic-screen--session .logic-track-name__input--session:focus,
+.logic-screen--session .logic-track-select.is-open .logic-track-input-badge__trigger,
+.logic-screen--session .logic-track-header--session.is-selected .logic-track-input-badge__trigger,
+.logic-screen--session .logic-track-header--session.is-selected .logic-track-name__display--session {
+  outline: none;
+  border-color: rgba(55, 148, 255, 0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(55, 148, 255, 0.16);
+}
+
+.logic-screen--session .logic-track-select .dropdown-select__value {
+  letter-spacing: 0.04em;
+}
+
+.logic-screen--session .logic-track-select__menu {
+  min-width: 72px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 24;
+}
+
+.logic-screen--session .logic-track-state-chip {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--session-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.logic-screen--session .logic-track-state-chip--ready {
+  color: #d7dbe0;
+}
+
+.logic-screen--session .logic-track-state-chip--recording {
+  color: #ffffff;
+  background: rgba(241, 76, 76, 0.84);
+  border-color: rgba(241, 76, 76, 0.92);
+}
+
+.logic-screen--session .logic-track-state-chip--saved {
+  color: #d4f8dd;
+  background: rgba(53, 122, 78, 0.24);
+  border-color: rgba(137, 209, 133, 0.24);
+}
+
+.logic-screen--session .logic-track-state-chip--warn {
+  color: #f0dd95;
+  background: rgba(204, 167, 0, 0.14);
+  border-color: rgba(204, 167, 0, 0.32);
+}
+
+.logic-screen--session .logic-track-state-chip--off {
+  color: #8a8f95;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logic-screen--session .logic-track-meter-mini {
+  position: relative;
+  width: 18px;
+  height: 36px;
+  align-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.18));
+  overflow: hidden;
+}
+
+.logic-screen--session .logic-track-meter-mini__fill {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: calc(max(10%, var(--logic-meter-level, 0) * 100%));
+  border-radius: 1px;
+  background: linear-gradient(180deg, var(--meter-hot) 0%, var(--meter-safe) 100%);
+}
+
+.logic-screen--session .logic-track-meter-mini__clip {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 4px;
+  height: 3px;
+  border-radius: 999px;
+  background: #f14c4c;
+  opacity: 0;
+}
+
+.logic-screen--session .logic-track-meter-mini.is-clipped {
+  border-color: rgba(241, 76, 76, 0.34);
+}
+
+.logic-screen--session .logic-track-meter-mini.is-clipped .logic-track-meter-mini__clip {
+  opacity: 1;
+}
+
+.logic-screen--session .logic-track-lane--session {
+  min-height: 52px;
+}
+
+.logic-screen--session .logic-track-lane--session .logic-track-lane__grid {
+  min-height: 52px;
+  padding: 6px 10px;
+}
+
+.logic-screen--session .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(55, 148, 255, 0.08), rgba(55, 148, 255, 0.02)),
+    #1e1e1e;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 20px, auto, auto;
+}
+
+.logic-screen--session .logic-audio-display,
+.logic-screen--session .logic-region--display {
+  min-height: 38px;
+}
+
+.logic-screen--session .logic-audio-display.is-selected,
+.logic-screen--session .logic-region.is-selected {
+  border-color: rgba(55, 148, 255, 0.3);
+}
+
+.logic-screen--session .logic-audio-display.is-off {
+  opacity: 0.28;
+}
+
+.logic-screen--session .logic-region.is-live {
+  position: relative;
+  overflow: hidden;
+}
+
+.logic-screen--session .logic-region.is-live::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  right: 2px;
+  width: 2px;
+  background: rgba(214, 236, 255, 0.9);
+  box-shadow: 0 0 10px rgba(165, 210, 255, 0.42);
+}
+
+.logic-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 12px;
+  min-height: 256px;
+  max-height: 256px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--session-border-strong);
+  background: linear-gradient(180deg, #202123 0%, #1a1b1d 100%);
+}
+
+.logic-preview--empty {
+  display: none;
+}
+
+.logic-preview__column {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--session-border);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.logic-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logic-preview__head h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f3f3f3;
+}
+
+.logic-preview__head p {
+  margin: 4px 0 0;
+  color: var(--session-text-muted);
+  font-size: 11px;
+}
+
+.logic-preview__playlist,
+.logic-preview__detail-wave {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.logic-preview__playlist {
+  --wp-controls-border-color: rgba(255, 255, 255, 0.08);
+  --wp-controls-background-color: #252526;
+  --wp-mute-solo-color: #cccccc;
+  --wp-mute-solo-hover-color: #ffffff;
+  --wp-mute-solo-focus-color: rgba(55, 148, 255, 0.25);
+  --wp-channel-color: #5ea6ff;
+  --wp-channel-progress-color: #9cd4ff;
+  --wp-cursor-color: #f14c4c;
+  --wp-selection-background-color: rgba(55, 148, 255, 0.14);
+  --wp-selection-point-color: #3794ff;
+  --wp-tracks-container-background-color: #1b1d1f;
+  --wp-range-slider-label-color: #cccccc;
+  --wp-range-slider-color: #3794ff;
+  --wp-range-slider-focus-color: #9cd4ff;
+  --wp-range-slider-background-color: #3c3c3c;
+  --wp-range-slider-background-focus-color: #4a4a4d;
+  --wp-annotation-box-border-color: rgba(255, 255, 255, 0.08);
+  --wp-annotation-current-background-color: rgba(55, 148, 255, 0.08);
+}
+
+.logic-preview__playlist .playlist {
+  margin: 0;
+  color: #cccccc;
+}
+
+.logic-preview__playlist .playlist .playlist-time-scale {
+  height: 26px;
+}
+
+.logic-preview__playlist .playlist .playlist-tracks {
+  background: #1b1d1f;
+}
+
+.logic-preview__playlist .playlist .controls {
+  background: #252526;
+}
+
+.logic-preview__playlist .playlist .track-header {
+  color: #cccccc;
+}
+
+.logic-preview__detail-wave {
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(55, 148, 255, 0.06), transparent 42%),
+    #1a1b1d;
+}
+
+.logic-preview__detail-wave::part(region) {
+  background: rgba(55, 148, 255, 0.18);
+}
+
+.logic-preview__message,
+.logic-preview__empty {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--session-text-muted);
+}
+
+.logic-preview__empty strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--session-text);
+  font-size: 13px;
 }
 
 .session-topbar {
@@ -449,11 +1971,136 @@
   }
 }
 
+body.session-page .logic-screen.logic-screen--session {
+  --logic-sidebar-width: 352px;
+  --logic-resizer-width: 9px;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.session-page .logic-screen--session .logic-arrange {
+  grid-template-rows: 36px minmax(0, 1fr);
+  border-top: 0;
+  background: #3b3b3b;
+}
+
+body.session-page .logic-screen--session .logic-windowbar {
+  display: block;
+  padding: 0;
+  background: linear-gradient(180deg, #d1d1d1 0%, #b9b9b9 100%);
+  border-bottom: 1px solid #2f2f2f;
+}
+
+body.session-page .logic-screen--session .logic-ruler__grid {
+  min-height: 36px;
+}
+
+body.session-page .logic-screen--session .logic-arrange__corner--session {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-right: 1px solid #2d2d2d;
+  background: linear-gradient(180deg, #585858 0%, #505050 100%);
+}
+
+body.session-page .logic-screen--session .logic-arrange__top,
+body.session-page .logic-screen--session .logic-arrange__body {
+  grid-template-columns: var(--logic-sidebar-width) var(--logic-resizer-width) minmax(0, 1fr);
+}
+
+body.session-page .logic-screen--session .logic-track-headers {
+  position: relative;
+  z-index: 3;
+  overflow-y: auto;
+  overflow-x: visible;
+  grid-auto-rows: 62px;
+  background: #6d6d6d;
+}
+
+body.session-page .logic-screen--session .logic-track-lanes {
+  grid-auto-rows: 62px;
+  background: #2b2b2b;
+}
+
+body.session-page .logic-screen--session .logic-track-header--session {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #787878 0%, #6e6e6e 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-screen--session .logic-track-header--session.is-selected {
+  background: linear-gradient(180deg, #7f7f7f 0%, #747474 100%);
+  box-shadow: inset 2px 0 0 #cfcfcf, inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session .logic-track-lane__grid {
+  min-height: 62px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #2b2b2b;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    #313131;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+body.session-page .logic-screen--session .logic-track-input-badge__trigger,
+body.session-page .logic-screen--session .logic-track-name__display--session,
+body.session-page .logic-screen--session .logic-track-name__input--session {
+  min-height: auto;
+}
+
+body.session-page .logic-screen--session .logic-audio-display,
+body.session-page .logic-screen--session .logic-region--display {
+  min-height: 30px;
+}
+
+.session-page {
+  height: 100dvh;
+  overflow: hidden;
+  color: #cccccc;
+  background:
+    linear-gradient(180deg, #1b1b1c 0%, #181818 100%);
+}
+
+.session-page::before {
+  opacity: 0.05;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
 .logic-screen.logic-screen--session {
   --logic-sidebar-width: 320px;
   --logic-resizer-width: 11px;
+  --session-bg: #181818;
+  --session-surface: #1e1e1e;
+  --session-surface-2: #252526;
+  --session-surface-3: #2d2d30;
+  --session-border: rgba(255, 255, 255, 0.08);
+  --session-border-strong: rgba(255, 255, 255, 0.14);
+  --session-text: #cccccc;
+  --session-text-muted: #9da1a6;
+  --session-blue: #3794ff;
+  --session-blue-strong: #0e639c;
+  --session-blue-soft: rgba(55, 148, 255, 0.14);
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
   grid-template-rows: 52px minmax(0, 1fr);
+  color: var(--session-text);
   font-family: var(--font-ui);
+  background: var(--session-bg);
 }
 
 .logic-screen.logic-screen--session *,
@@ -463,7 +2110,9 @@
 
 .logic-screen--session .logic-main {
   min-height: 0;
+  overflow: hidden;
   grid-template-rows: minmax(0, 1fr);
+  background: var(--session-bg);
 }
 
 .logic-session-alerts {
@@ -473,9 +2122,14 @@
 }
 
 .logic-screen--session .logic-arrange {
-  border-top: 0;
+  border-top: 1px solid var(--session-border);
   min-height: 0;
+  overflow: hidden;
   grid-template-rows: 28px minmax(0, 1fr);
+  background: var(--session-surface);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.02),
+    0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 .logic-screen--session .logic-arrange__top,
@@ -483,10 +2137,26 @@
   grid-template-columns: var(--logic-sidebar-width) var(--logic-resizer-width) minmax(0, 1fr);
 }
 
+.logic-screen--session .logic-arrange__top {
+  border-bottom: 1px solid var(--session-border-strong);
+  background: var(--session-surface-2);
+}
+
+.logic-screen--session .logic-arrange__body {
+  background: var(--session-surface);
+}
+
+.logic-screen--session .logic-windowbar {
+  border-bottom: 1px solid var(--session-border-strong);
+  background: #252526;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
 .logic-screen--session .logic-arrange__corner {
   padding: 0;
   border-right: 0;
   min-width: 0;
+  background: var(--session-surface-2);
 }
 
 .logic-screen--session .logic-ruler,
@@ -495,8 +2165,57 @@
   min-width: 0;
 }
 
+.logic-screen--session .logic-ruler__grid {
+  background: var(--session-surface-2);
+}
+
+.logic-screen--session .logic-ruler__grid::after {
+  background: rgba(59, 130, 246, 0.82);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.logic-screen--session .logic-ruler__grid::before {
+  border-top-color: var(--session-blue);
+}
+
+.logic-screen--session .logic-ruler__cell {
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+.logic-screen--session .logic-ruler__label {
+  color: var(--session-text-muted);
+}
+
 .logic-screen--session .logic-track-headers {
   border-right: 0;
+  background: var(--session-surface-2);
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.logic-screen--session .logic-track-lanes {
+  background: var(--session-surface);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+
+.logic-screen--session .logic-track-headers::-webkit-scrollbar,
+.logic-screen--session .logic-track-lanes::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.logic-screen--session .logic-track-lanes::before {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.logic-screen--session .logic-track-lane {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .logic-sidebar-resizer {
@@ -504,10 +2223,11 @@
   min-width: var(--logic-resizer-width);
   cursor: col-resize;
   touch-action: none;
-  background: linear-gradient(90deg, #4b5158 0%, #3f454c 28%, #2f343b 50%, #3d434a 72%, #4a5058 100%);
+  background:
+    linear-gradient(90deg, #252526 0%, #313131 50%, #252526 100%);
   box-shadow:
-    inset 1px 0 rgba(255, 255, 255, 0.07),
-    inset -1px 0 rgba(0, 0, 0, 0.45);
+    inset 1px 0 rgba(255, 255, 255, 0.04),
+    inset -1px 0 rgba(0, 0, 0, 0.26);
 }
 
 .logic-sidebar-resizer::before {
@@ -518,7 +2238,7 @@
   left: 50%;
   width: 1px;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .logic-sidebar-resizer::after {
@@ -531,12 +2251,13 @@
   transform: translate(-50%, -50%);
   border-radius: 1px;
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.34) 0 1px, transparent 1.5px) center top / 5px 8px repeat-y;
-  opacity: 0.68;
+    radial-gradient(circle, rgba(204, 204, 204, 0.26) 0 1px, transparent 1.5px) center top / 5px 8px repeat-y;
+  opacity: 0.44;
 }
 
 .logic-sidebar-resizer--top {
-  background: linear-gradient(90deg, #464b52 0%, #3a4047 30%, #2c3138 50%, #3a4047 70%, #464b52 100%);
+  background:
+    linear-gradient(90deg, #252526 0%, #313131 50%, #252526 100%);
 }
 
 .logic-sidebar-resizer--top::after {
@@ -544,19 +2265,27 @@
 }
 
 .logic-sidebar-resizer--body {
-  background: linear-gradient(90deg, #4c5158 0%, #41464d 30%, #33383f 50%, #40454c 70%, #4c5158 100%);
+  background:
+    linear-gradient(90deg, #252526 0%, #313131 50%, #252526 100%);
 }
 
 .logic-sidebar-resizer:hover::before,
 .logic-sidebar-resizer:focus-visible::before,
 .logic-screen--session.is-resizing .logic-sidebar-resizer::before {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .logic-sidebar-resizer:hover::after,
 .logic-sidebar-resizer:focus-visible::after,
 .logic-screen--session.is-resizing .logic-sidebar-resizer::after {
   opacity: 1;
+}
+
+.logic-sidebar-resizer:hover,
+.logic-sidebar-resizer:focus-visible,
+.logic-screen--session.is-resizing .logic-sidebar-resizer {
+  background:
+    linear-gradient(90deg, #2a2a2b 0%, #37373a 50%, #2a2a2b 100%);
 }
 
 .logic-screen--session.is-resizing,
@@ -574,21 +2303,22 @@
   justify-content: center;
   padding: 0 10px;
   border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #eef2f5;
+  border: 1px solid var(--session-border);
+  color: var(--session-text);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .logic-chip-button,
 .logic-action-btn {
-  background: linear-gradient(180deg, #6f747a, #575c61);
+  background:
+    linear-gradient(180deg, #3c3c3c 0%, #2d2d30 100%);
 }
 
 .logic-chip-label {
-  background: rgba(40, 44, 50, 0.34);
-  color: #2a2d31;
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(55, 148, 255, 0.12);
+  color: #9cdcfe;
+  border-color: rgba(55, 148, 255, 0.18);
   font-size: 11px;
   font-weight: 700;
 }
@@ -605,15 +2335,19 @@
 }
 
 .logic-action-btn--start {
-  background: linear-gradient(180deg, #2fc153, #24a645);
+  background:
+    linear-gradient(180deg, #1177bb 0%, #0e639c 100%);
+  color: #ffffff;
 }
 
 .logic-action-btn--stop {
-  background: linear-gradient(180deg, #d45649, #bb4338);
+  background:
+    linear-gradient(180deg, #3c3c3c 0%, #2d2d30 100%);
 }
 
 .logic-action-btn--quiet {
-  background: linear-gradient(180deg, #7b7f84, #666a70);
+  background:
+    linear-gradient(180deg, #3c3c3c 0%, #2d2d30 100%);
 }
 
 .logic-action-btn[disabled] {
@@ -627,9 +2361,9 @@
 }
 
 .logic-status-chip--quiet {
-  color: #848b93;
-  background: rgba(46, 50, 55, 0.42);
-  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--session-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--session-border);
 }
 
 .logic-transport--session {
@@ -639,22 +2373,54 @@
 .logic-screen--session .logic-transport__buttons {
   padding: 1px 3px;
   border-radius: 3px;
+  border: 1px solid var(--session-border);
+  background: var(--session-surface-2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .logic-screen--session .logic-transport-btn {
   width: 32px;
   height: 30px;
   border-radius: 3px;
+  border: 1px solid var(--session-border-strong);
+  background: linear-gradient(180deg, #3c3c3c 0%, #2d2d30 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.logic-screen--session .logic-transport-btn--record {
+  background:
+    linear-gradient(180deg, #1177bb 0%, #0e639c 100%);
+}
+
+.logic-screen--session .logic-shape--record,
+.logic-screen--session .logic-shape--play {
+  background: #ffffff;
+  border-left-color: #ffffff;
+}
+
+.logic-screen--session .logic-shape--stop {
+  background: #d4d4d4;
 }
 
 .logic-track-header--session {
   grid-template-columns: 76px minmax(0, 1fr);
   gap: 6px;
   padding: 7px 8px;
+  border-bottom: 1px solid var(--session-border);
+  background: var(--session-surface-2);
 }
 
 .logic-track-lane--session .logic-track-lane__grid {
   padding: 8px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    #1e1e1e;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 20px, auto;
 }
 
 .logic-track-field {
@@ -705,15 +2471,19 @@
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  border: 1px solid #2b3036;
+  border: 1px solid var(--session-border);
   border-radius: 1px;
-  background:
-    linear-gradient(180deg, rgba(37, 41, 47, 0.98), rgba(29, 33, 39, 0.98));
+  background: #1f1f1f;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.34);
-  color: #eef2f5;
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  color: var(--session-text);
   font-size: 12px;
+}
+
+.logic-track-field-static {
+  cursor: default;
+  user-select: none;
 }
 
 .logic-track-select__trigger {
@@ -737,30 +2507,29 @@
   top: calc(100% + 4px);
   padding: 4px;
   border-radius: 2px;
-  border-color: rgba(19, 22, 27, 0.96);
-  background:
-    linear-gradient(180deg, rgba(65, 70, 77, 0.98), rgba(46, 51, 57, 0.98));
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #252526;
   box-shadow:
-    0 12px 22px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    0 12px 22px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .logic-track-select .dropdown-select__option {
   padding: 7px 10px;
   border-radius: 1px;
-  color: #eef2f5;
+  color: var(--session-text);
   font-size: 11px;
 }
 
 .logic-track-select .dropdown-select__option:hover,
 .logic-track-select .dropdown-select__option:focus-visible {
-  background: rgba(97, 126, 161, 0.2);
-  border-color: rgba(136, 166, 205, 0.18);
+  background: rgba(55, 148, 255, 0.12);
+  border-color: rgba(55, 148, 255, 0.18);
 }
 
 .logic-track-select .dropdown-select__option.is-selected {
-  background: rgba(78, 104, 134, 0.34);
-  border-color: rgba(170, 194, 226, 0.16);
+  background: rgba(55, 148, 255, 0.16);
+  border-color: rgba(55, 148, 255, 0.22);
 }
 
 .logic-track-name__display {
@@ -781,11 +2550,11 @@
 .logic-track-select .dropdown-select__trigger:focus-visible,
 .logic-track-select.is-open .dropdown-select__trigger {
   outline: none;
-  border-color: rgba(155, 184, 219, 0.44);
+  border-color: rgba(55, 148, 255, 0.42);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(105, 138, 176, 0.22);
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(55, 148, 255, 0.18);
 }
 
 .logic-track-name.is-editing .logic-track-name__display {
@@ -801,7 +2570,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  color: var(--text-muted);
+  color: var(--session-text-muted);
   text-align: center;
 }
 
@@ -836,40 +2605,86 @@
   margin: 3px;
   padding: 0;
   border-radius: 1px;
+  border-color: rgba(55, 148, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .logic-screen--session .logic-region--display {
   min-height: 32px;
+  background:
+    linear-gradient(180deg, rgba(31, 78, 121, 0.94), rgba(16, 86, 146, 0.88));
+}
+
+.logic-screen--session .logic-region--indigo {
+  background:
+    linear-gradient(180deg, #264f78 0%, #1f4667 100%);
+}
+
+.logic-screen--session .logic-region--blue {
+  background:
+    linear-gradient(180deg, #1f4f7a 0%, #245a87 100%);
+}
+
+.logic-screen--session .logic-region--cyan {
+  background:
+    linear-gradient(180deg, #15516f 0%, #156082 100%);
 }
 
 .logic-screen--session .logic-region__wave {
-  border-radius: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
   height: 100%;
-  margin-top: 0;
+  padding: 4px 5px;
+  overflow: hidden;
+  border-radius: 0;
 }
 
 .logic-audio-display {
   align-self: center;
   min-height: 32px;
   margin: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(63, 137, 224, 0.22), rgba(41, 87, 153, 0.16));
+  border: 1px solid rgba(55, 148, 255, 0.16);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(38, 79, 120, calc(0.2 + (var(--logic-live-intensity, 0.18) * 0.22))),
+      rgba(21, 96, 130, calc(0.1 + (var(--logic-live-intensity, 0.18) * 0.14)))
+    );
 }
 
 .logic-audio-display__wave {
+  display: flex;
+  align-items: center;
+  gap: 1px;
   height: 100%;
-  background:
-    radial-gradient(circle at 12px 50%, rgba(255, 255, 255, 0.45) 0 4px, transparent 5px),
-    radial-gradient(circle at 40px 50%, rgba(255, 255, 255, 0.32) 0 2px, transparent 3px),
-    radial-gradient(circle at 68px 50%, rgba(255, 255, 255, 0.42) 0 5px, transparent 6px),
-    radial-gradient(circle at 96px 50%, rgba(255, 255, 255, 0.32) 0 3px, transparent 4px),
-    radial-gradient(circle at 124px 50%, rgba(255, 255, 255, 0.42) 0 4px, transparent 5px),
-    linear-gradient(180deg, transparent 38%, rgba(255, 255, 255, 0.28) 38% 62%, transparent 62%);
-  background-size: 148px 100%;
+  padding: 4px 5px;
+  overflow: hidden;
 }
 
 .logic-audio-display--empty {
   opacity: 0.56;
+}
+
+.logic-waveform__bar {
+  flex: 1 1 0;
+  min-width: 1px;
+  max-width: 4px;
+  align-self: center;
+  height: max(8%, calc(var(--logic-wave-height, 0.08) * 100%));
+  border-radius: 1px;
+  opacity: calc(0.46 + (var(--logic-live-intensity, 0.18) * 0.34));
+}
+
+.logic-region__wave .logic-waveform__bar {
+  background: rgba(225, 240, 255, 0.82);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.logic-audio-display__wave .logic-waveform__bar {
+  background: rgba(157, 218, 255, 0.6);
 }
 
 .logic-screen {
@@ -894,10 +2709,220 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .logic-windowbar__side--right {
   justify-content: flex-end;
+}
+
+.logic-windowbar-settings-btn {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #252526;
+  color: #cccccc;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logic-windowbar-settings-btn:hover,
+.logic-windowbar-settings-btn:focus-visible {
+  outline: none;
+  border-color: #4f5255;
+  background: #2c2c2d;
+}
+
+#logic-modal-root {
+  position: relative;
+  z-index: 80;
+}
+
+.logic-settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.logic-settings-dialog {
+  width: min(520px, calc(100vw - 32px));
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  background: #252526;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
+.logic-settings-dialog__header,
+.logic-settings-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logic-settings-dialog__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.logic-settings-dialog__copy h2 {
+  margin: 0;
+  color: #f3f3f3;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.logic-settings-dialog__copy p {
+  margin: 0;
+  color: #9da1a6;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.logic-settings-dialog__close,
+.logic-settings-dialog__done {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #2d2d30;
+  color: #cccccc;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.logic-settings-dialog__close:hover,
+.logic-settings-dialog__close:focus-visible,
+.logic-settings-dialog__done:hover,
+.logic-settings-dialog__done:focus-visible {
+  outline: none;
+  border-color: #4f5255;
+  background: #323236;
+}
+
+.logic-settings-dialog__body {
+  display: grid;
+  gap: 14px;
+}
+
+.logic-settings-dialog__notice {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  background: #1f1f1f;
+  color: #9da1a6;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.logic-settings-field {
+  display: grid;
+  gap: 6px;
+}
+
+.logic-settings-field__label {
+  color: #9da1a6;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.logic-settings-select {
+  width: 100%;
+}
+
+.logic-settings-static {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #1f1f1f;
+  color: #cccccc;
+  font-size: 12px;
+}
+
+.logic-settings-select__trigger {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  background: #1f1f1f;
+  color: #cccccc;
+  font-size: 12px;
+}
+
+.logic-settings-select .dropdown-select__value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logic-settings-select .dropdown-select__chevron {
+  width: 10px;
+  height: 10px;
+  border-right-width: 1.5px;
+  border-bottom-width: 1.5px;
+  opacity: 0.82;
+}
+
+.logic-settings-select__trigger:focus-visible,
+.logic-settings-select.is-open .logic-settings-select__trigger {
+  outline: none;
+  border-color: rgba(55, 148, 255, 0.42);
+  box-shadow: 0 0 0 1px rgba(55, 148, 255, 0.18);
+}
+
+.logic-settings-select__menu {
+  top: calc(100% + 6px);
+  z-index: 90;
+  padding: 4px;
+  border-radius: 2px;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #252526;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.32);
+}
+
+.logic-settings-select .dropdown-select__option {
+  padding: 8px 10px;
+  border-radius: 1px;
+  color: #cccccc;
+  font-size: 12px;
+  justify-content: flex-start;
+}
+
+.logic-settings-select .dropdown-select__option:hover,
+.logic-settings-select .dropdown-select__option:focus-visible {
+  background: rgba(55, 148, 255, 0.12);
+  border-color: rgba(55, 148, 255, 0.18);
+}
+
+.logic-settings-select .dropdown-select__option.is-selected {
+  background: rgba(55, 148, 255, 0.16);
+  border-color: rgba(55, 148, 255, 0.22);
+}
+
+.logic-settings-select__empty {
+  padding: 10px;
+  color: #9da1a6;
+  font-size: 11px;
 }
 
 .logic-chip-group {
@@ -1582,6 +3607,7 @@
   bottom: 0;
   left: calc((100% / var(--logic-columns)) * var(--logic-playhead));
   width: 1px;
+  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
@@ -1589,13 +3615,13 @@
 .logic-ruler__grid::before {
   content: "";
   position: absolute;
-  left: calc((100% / var(--logic-columns)) * var(--logic-playhead) - 6px);
+  left: calc((100% / var(--logic-columns)) * var(--logic-playhead));
   top: 0;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid #d7dce1;
+  width: 12px;
+  height: 8px;
+  transform: translateX(-50%);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  background: #d7dce1;
   z-index: 2;
 }
 
@@ -1772,6 +3798,7 @@
   bottom: 0;
   left: calc((100% / var(--logic-columns)) * var(--logic-playhead));
   width: 1px;
+  transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.82);
   z-index: 5;
   pointer-events: none;
@@ -1860,21 +3887,6 @@
 .logic-region__take {
   font-size: 9px;
   color: rgba(255, 255, 255, 0.88);
-}
-
-.logic-region__wave {
-  height: calc(100% - 20px);
-  margin-top: 3px;
-  border-radius: 2px;
-  background:
-    radial-gradient(circle at 10px 50%, rgba(255, 255, 255, 0.94) 0 5px, transparent 6px),
-    radial-gradient(circle at 34px 50%, rgba(255, 255, 255, 0.9) 0 3px, transparent 4px),
-    radial-gradient(circle at 58px 50%, rgba(255, 255, 255, 0.9) 0 7px, transparent 8px),
-    radial-gradient(circle at 82px 50%, rgba(255, 255, 255, 0.86) 0 4px, transparent 5px),
-    radial-gradient(circle at 106px 50%, rgba(255, 255, 255, 0.92) 0 6px, transparent 7px),
-    radial-gradient(circle at 130px 50%, rgba(255, 255, 255, 0.88) 0 4px, transparent 5px),
-    linear-gradient(180deg, transparent 30%, rgba(255, 255, 255, 0.56) 30% 70%, transparent 70%);
-  background-size: 154px 100%;
 }
 
 .logic-mixer {
@@ -2797,20 +4809,6 @@
     grid-template-columns: repeat(var(--track-columns), minmax(180px, 1fr));
   }
 
-  .landing-card {
-    width: min(100%, 420px);
-    gap: var(--space-4);
-  }
-
-  .landing-card__copy h1 {
-    font-size: 3.1rem;
-  }
-
-  .landing-card__cta {
-    width: 100%;
-    justify-content: center;
-  }
-
   .page-head__title h1 {
     font-size: 2.7rem;
   }
@@ -2824,4 +4822,1017 @@
   .segment-card__head {
     display: grid;
   }
+}
+
+body.session-playground-page {
+  height: auto;
+  min-height: 100vh;
+  overflow: auto;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 28%),
+    #141414;
+}
+
+body.session-playground-page::before {
+  display: none;
+}
+
+.logic-playground {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: 22px;
+  padding: 32px 24px 48px;
+}
+
+.logic-playground__head,
+.logic-playground__section {
+  display: grid;
+  gap: 14px;
+}
+
+.logic-playground__eyebrow {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.logic-playground__head h1,
+.logic-playground__section-head h2 {
+  margin: 0;
+  color: #f3f3f3;
+}
+
+.logic-playground__head h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.logic-playground__copy,
+.logic-playground__section-head p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.logic-playground__section-head {
+  display: grid;
+  gap: 4px;
+}
+
+.logic-playground-surface {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #2b2b2c;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+}
+
+.logic-playground-surface.logic-screen.logic-screen--session {
+  height: auto;
+  min-height: 0;
+}
+
+.logic-playground-surface--bar .logic-windowbar,
+.logic-playground-surface--toolbar {
+  border-bottom: 0;
+}
+
+.logic-playground-minibar-stack {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #cfcfcf 0%, #b6b6b6 100%);
+}
+
+.logic-playground-minibar {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-minibar--clock {
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.logic-playground-minibar__left,
+.logic-playground-minibar__center,
+.logic-playground-minibar__right {
+  display: flex;
+  align-items: center;
+}
+
+.logic-playground-minibar__spacer {
+  min-width: 0;
+}
+
+.logic-playground-minibar__transport {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logic-playground-minibar__center {
+  justify-content: center;
+  gap: 10px;
+}
+
+.logic-playground-minibar__right {
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.logic-playground-minibar__action--settings {
+  color: #f2f5fb;
+  background: linear-gradient(180deg, #7f848b 0%, #656a71 100%);
+}
+
+.logic-playground-minibar__action--settings .hero-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.logic-playground-minibar__display {
+  min-width: 224px;
+  display: grid;
+  gap: 3px;
+  padding: 7px 14px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #303444 0%, #222734 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.logic-playground-minibar__display--clock {
+  min-width: 252px;
+}
+
+.logic-playground-minibar__display-top {
+  display: flex;
+  justify-content: center;
+}
+
+.logic-playground-minibar__display-label {
+  color: #d8dce5;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.logic-playground-minibar__time {
+  color: #f4f6fb;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.logic-playground-minibar__warning {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d94d42;
+  box-shadow: 0 0 0 3px rgba(217, 77, 66, 0.16);
+}
+
+.logic-playground-minibar__action {
+  width: 30px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(0,0,0,0.06));
+  color: #303030;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.hero-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.hero-icon--solid {
+  stroke: none;
+  fill: currentColor;
+}
+
+.logic-playground-surface .logic-toolicon-btn {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-surface .logic-toolicon-btn:hover:not(:disabled),
+.logic-playground-surface .logic-toolicon-btn:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.logic-playground-surface .logic-toolicon-btn.is-selected,
+.logic-playground-surface .logic-toolicon-btn--accent {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.logic-playground-surface .logic-menu-btn {
+  min-height: 20px;
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-surface .logic-menu-btn:hover,
+.logic-playground-surface .logic-menu-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.logic-playground-minibar__action--record {
+  color: #ffffff;
+  background: linear-gradient(180deg, #e15d52 0%, #c84439 100%);
+}
+
+.logic-playground-minibar__action--record .hero-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.logic-playground-minibar__action--stop .hero-icon {
+  width: 11px;
+  height: 11px;
+  color: #2f2f2f;
+}
+
+.logic-playground-surface--toolbar .logic-shellbar__row--bottom {
+  min-height: 34px;
+}
+
+.logic-playground-surface--track {
+  padding: 0;
+}
+
+.logic-playground-surface--track .logic-track-headers {
+  overflow: visible;
+}
+
+.logic-playground-surface--ruler .logic-arrange,
+.logic-playground-surface--editor .logic-arrange {
+  min-height: 0;
+  border-top: 0;
+  box-shadow: none;
+}
+
+.logic-playground-corner-note {
+  color: rgba(241, 245, 251, 0.72);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.logic-playground-surface--ruler .logic-arrange__body {
+  display: none;
+}
+
+.logic-playground-surface--editor .logic-main {
+  min-height: 78px;
+}
+
+.logic-playground-surface--editor .logic-arrange {
+  min-height: 78px;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.logic-playground-surface--editor .logic-arrange__body {
+  min-height: 78px;
+}
+
+.logic-playground-surface--editor .logic-track-lanes,
+.logic-playground-surface--editor .logic-track-headers {
+  overflow: hidden;
+}
+
+.logic-playground-surface--full .logic-main {
+  min-height: 420px;
+}
+
+.logic-playground-surface--full .logic-track-headers,
+.logic-playground-surface--full .logic-track-lanes {
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .logic-playground {
+    padding-inline: 16px;
+  }
+
+  .logic-playground-surface--full .logic-shellbar__row--top,
+  .logic-playground-surface--bar .logic-shellbar__row--top {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-block: 10px;
+  }
+
+  .logic-playground-surface--full .logic-shellbar__cluster--right,
+  .logic-playground-surface--bar .logic-shellbar__cluster--right {
+    justify-content: flex-start;
+  }
+}
+
+.logic-playground-surface {
+  border-radius: 14px;
+}
+
+.logic-playground-surface--bar .logic-windowbar,
+.logic-playground-surface--toolbar .logic-shellbar__row--bottom,
+.logic-playground-surface--track .logic-track-headers,
+.logic-playground-surface--ruler .logic-arrange,
+.logic-playground-surface--editor .logic-arrange,
+.logic-playground-surface--full .logic-windowbar,
+.logic-playground-surface--full .logic-arrange {
+  box-shadow: none;
+}
+
+.logic-playground-surface--bar .logic-shellbar__row--top,
+.logic-playground-surface--full .logic-shellbar__row--top {
+  grid-template-columns: auto 278px auto;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 54px;
+}
+
+.logic-playground-appbar__left,
+.logic-playground-appbar__right {
+  gap: 14px;
+}
+
+.logic-playground-toolgroup {
+  gap: 4px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.logic-playground-toolgroup .logic-toolicon-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.logic-playground-lcd {
+  width: 278px;
+  padding: 6px 11px 7px;
+  border-radius: 7px;
+}
+
+.logic-playground-lcd .logic-lcd__top {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.logic-playground-lcd__caret {
+  color: #d7dbe3;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.logic-playground-lcd__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: end;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.logic-playground-lcd__ghost {
+  color: rgba(255, 255, 255, 0.14);
+}
+
+.logic-playground-lcd__time {
+  margin-top: 2px;
+  color: #eef2f8;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.logic-playground-lcd__meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.logic-playground-darkcapsule {
+  width: 44px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #4d4d4d 0%, #343434 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.logic-playground-righticons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logic-playground-righticons .logic-toolicon-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.logic-playground-surface--toolbar .logic-shellbar__row--bottom,
+.logic-playground-surface--full .logic-shellbar__row--bottom {
+  min-height: 34px;
+  padding: 0 8px;
+}
+
+.logic-playground-toolbar {
+  gap: 8px;
+}
+
+.logic-playground-toolbar__left,
+.logic-playground-toolbar__right {
+  gap: 4px;
+}
+
+.logic-playground-toolbar__center-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logic-playground-toolbar__dots {
+  display: inline-flex;
+  align-items: center;
+}
+
+.logic-playground-toolbar__sliders {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 6px;
+}
+
+.logic-playground-toolbar__sliders span {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.72) 0 40%, rgba(0,0,0,0.24) 40% 100%);
+}
+
+.logic-playground-surface--track .logic-track-headers,
+.logic-playground-surface--editor .logic-track-headers,
+.logic-playground-surface--full .logic-track-headers {
+  grid-auto-rows: 78px;
+  background: #b7b7b7;
+}
+
+.logic-playground-surface--track .logic-track-header--session,
+.logic-playground-surface--editor .logic-track-header--session,
+.logic-playground-surface--full .logic-track-header--session {
+  min-height: 78px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-surface--track .logic-track-strip__body,
+.logic-playground-surface--editor .logic-track-strip__body,
+.logic-playground-surface--full .logic-track-strip__body {
+  gap: 6px;
+  padding: 8px 12px 8px 12px;
+}
+
+.logic-playground-track-strip__body--logic {
+  display: grid !important;
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  grid-template-areas: "name slider";
+  align-content: center;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 0;
+}
+
+.logic-playground-surface--track .logic-track-strip__title-row,
+.logic-playground-surface--editor .logic-track-strip__title-row,
+.logic-playground-surface--full .logic-track-strip__title-row {
+  gap: 10px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-surface--track .logic-track-strip__controls-row,
+.logic-playground-surface--editor .logic-track-strip__controls-row,
+.logic-playground-surface--full .logic-track-strip__controls-row {
+  gap: 8px;
+}
+
+.logic-playground-surface--track .logic-track-strip__index,
+.logic-playground-surface--editor .logic-track-strip__index,
+.logic-playground-surface--full .logic-track-strip__index {
+  color: rgba(255, 255, 255, 0.96);
+  border-right-color: rgba(0, 0, 0, 0.16);
+  background: transparent;
+}
+
+.logic-playground-surface--track .logic-track-strip__icon,
+.logic-playground-surface--editor .logic-track-strip__icon,
+.logic-playground-surface--full .logic-track-strip__icon {
+  align-self: center;
+  width: 28px;
+  height: 24px;
+  border-radius: 3px;
+}
+
+.logic-playground-track-strip__icon--logic {
+  background: linear-gradient(180deg, #2d72da 0%, #1f5fc1 100%);
+  color: transparent;
+}
+
+.logic-playground-audio-glyph {
+  width: 16px;
+  height: 14px;
+  display: inline-block;
+  background:
+    linear-gradient(180deg, transparent 0 3px, #e6a958 3px 11px, transparent 11px 100%) 0 50% / 2px 100% no-repeat,
+    linear-gradient(180deg, transparent 0 1px, #e6a958 1px 13px, transparent 13px 100%) 4px 50% / 2px 100% no-repeat,
+    linear-gradient(180deg, transparent 0 0, #e6a958 0 14px, transparent 14px 100%) 8px 50% / 2px 100% no-repeat,
+    linear-gradient(180deg, transparent 0 1px, #e6a958 1px 13px, transparent 13px 100%) 12px 50% / 2px 100% no-repeat,
+    linear-gradient(180deg, transparent 0 3px, #e6a958 3px 11px, transparent 11px 100%) 16px 50% / 2px 100% no-repeat;
+}
+
+.logic-playground-surface--track .logic-track-input-badge__trigger,
+.logic-playground-surface--track .logic-track-name__display--session,
+.logic-playground-surface--editor .logic-track-input-badge__trigger,
+.logic-playground-surface--editor .logic-track-name__display--session,
+.logic-playground-surface--full .logic-track-input-badge__trigger,
+.logic-playground-surface--full .logic-track-name__display--session {
+  min-height: 18px;
+  border-color: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, #4a4f5d 0%, #3a404d 100%);
+  color: #eef2f8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.logic-playground-surface--track .logic-track-name__display--session,
+.logic-playground-surface--editor .logic-track-name__display--session,
+.logic-playground-surface--full .logic-track-name__display--session {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #f7f7f7;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.logic-playground-track-strip__name-area {
+  grid-area: name;
+  min-width: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.logic-playground-track-strip__name {
+  align-self: center;
+  justify-self: start;
+  width: auto;
+  min-width: auto;
+  line-height: 1;
+  text-align: left;
+}
+
+.logic-playground-strip-slider {
+  --logic-slider-thumb-size: 24px;
+  grid-area: slider;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logic-playground-strip-slider__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.logic-playground-strip-slider__track {
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #5c5c5c 0%, #474747 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.logic-playground-strip-slider__thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--logic-slider-value, 0.5) * (100% - var(--logic-slider-thumb-size)));
+  width: var(--logic-slider-thumb-size);
+  height: var(--logic-slider-thumb-size);
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #d3d3d3 0%, #b9b9b9 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transform: translateY(-50%);
+}
+
+body.session-page.session-playground-page .logic-playground-strip-slider__thumb {
+  display: none;
+}
+
+/* Playground track strip spacing contract (sections 2, 4, 5) */
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-header--session,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-header--session,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-header--session {
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  padding: 0 14px 0 10px;
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-strip__index,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-strip__index,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-strip__index {
+  justify-content: center;
+  align-items: center;
+  padding-right: 10px;
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-strip__body,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-strip__body,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-strip__body {
+  padding: 0;
+}
+
+body.session-page.session-playground-page .logic-playground-track-strip__body--logic {
+  grid-template-columns: minmax(112px, 34%) minmax(0, 1fr);
+  column-gap: 18px;
+}
+
+body.session-page.session-playground-page .logic-playground-track-strip__name-area {
+  width: 100%;
+  min-width: 0;
+}
+
+body.session-page.session-playground-page .logic-playground-track-strip__name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  line-height: 1.1;
+  outline: none;
+}
+
+.logic-playground-surface--ruler .logic-ruler__grid,
+.logic-playground-surface--full .logic-ruler__grid,
+.logic-playground-surface--editor .logic-ruler__grid {
+  min-height: 38px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px calc(10%)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.12)),
+    #3a3a3a;
+  background-size: 100% 100%, 100% 100%, auto;
+}
+
+.logic-playground-surface--ruler .logic-ruler__label,
+.logic-playground-surface--full .logic-ruler__label,
+.logic-playground-surface--editor .logic-ruler__label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.logic-playground-surface--ruler .logic-ruler__grid::before,
+.logic-playground-surface--full .logic-ruler__grid::before,
+.logic-playground-surface--editor .logic-ruler__grid::before {
+  width: 10px;
+  height: 8px;
+}
+
+.logic-playground-surface--ruler .logic-ruler__grid::after,
+.logic-playground-surface--full .logic-ruler__grid::after,
+.logic-playground-surface--editor .logic-ruler__grid::after {
+  background: rgba(225, 232, 240, 0.92);
+}
+
+.logic-playground-track-lanes {
+  height: 78px;
+  grid-auto-rows: 78px;
+}
+
+body.session-page.session-playground-page .logic-playground-track-lanes .logic-track-lane--session .logic-track-lane__grid {
+  padding: 0 !important;
+  background: transparent !important;
+  background-size: auto !important;
+}
+
+body.session-page.session-playground-page .logic-playground-track-lanes .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  padding: 0 !important;
+  background: transparent !important;
+  background-size: auto !important;
+}
+
+.logic-playground-track-lanes .logic-track-lane__grid {
+  height: 78px;
+  min-height: 78px;
+}
+
+.logic-playground-empty-canvas {
+  width: 100%;
+  height: 78px;
+  min-height: 78px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.08) 1px, transparent 1px),
+    #313131;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+}
+
+.logic-playground-surface--full .logic-main {
+  min-height: 300px;
+}
+
+.logic-playground-surface--full .logic-track-lanes {
+  height: 234px;
+  grid-auto-rows: 234px;
+}
+
+.logic-playground-surface--full .logic-playground-empty-canvas {
+  height: 234px;
+  min-height: 234px;
+}
+
+/* Session page: apply playground full-editor composition */
+body.session-page:not(.session-playground-page) .logic-screen--session {
+  min-height: 100vh;
+  grid-template-rows: 72px minmax(0, 1fr);
+  background: #505358;
+}
+
+body.session-page:not(.session-playground-page) .logic-main--session {
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+body.session-page:not(.session-playground-page) #logic-preview {
+  display: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar {
+  padding: 0;
+  border-bottom: 1px solid #888d93;
+  background: linear-gradient(180deg, #cfcfcf 0%, #b6b6b6 100%);
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar-stack {
+  gap: 0;
+  padding: 10px 14px;
+  background: transparent;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar {
+  min-height: 50px;
+  padding: 0 8px;
+  border-radius: 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__display--clock {
+  min-width: 252px;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__action:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__action--record.is-recording {
+  background: linear-gradient(180deg, #cf4a40 0%, #b13c33 100%);
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__action--record.is-recording .hero-icon {
+  color: #ffffff;
+}
+
+body.session-page:not(.session-playground-page) .logic-arrange {
+  border-top: 1px solid #7e838a;
+  grid-template-rows: 44px minmax(0, 1fr);
+  background: #2b2d31;
+  box-shadow: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-arrange__top {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #3c3f45;
+}
+
+body.session-page:not(.session-playground-page) .logic-arrange__corner {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-right: 0;
+  background: linear-gradient(180deg, #575b62 0%, #4a4e55 100%);
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__grid {
+  min-height: 44px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.12)),
+    #3a3e45;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(240, 243, 247, 0.82);
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__grid::before {
+  width: 10px;
+  height: 8px;
+  background: rgba(240, 243, 247, 0.92);
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__grid::after {
+  background: rgba(240, 243, 247, 0.92);
+  box-shadow: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-headers {
+  grid-auto-rows: 78px;
+  border-right: 0;
+  background: #808389;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-header--session {
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  padding: 0 14px 0 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #8f9399 0%, #7d8087 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-header--session.is-selected {
+  background: linear-gradient(180deg, #969aa1 0%, #858991 100%);
+  box-shadow:
+    inset 2px 0 0 rgba(226, 230, 236, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-strip__index {
+  display: grid;
+  place-items: center;
+  padding-right: 10px;
+  border-right: 1px solid rgba(0, 0, 0, 0.16);
+  color: #f2f5f9;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-strip__body.logic-playground-track-strip__body--logic {
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(112px, 34%) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 18px;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-track-strip__name-area {
+  width: 100%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-name__display--session,
+body.session-page:not(.session-playground-page) .logic-track-name__input--session {
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #f5f7fa;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: left;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-name__display--session:focus-visible,
+body.session-page:not(.session-playground-page) .logic-track-name__input--session:focus {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-track-strip__name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider {
+  height: 22px;
+  align-items: center;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider--readonly {
+  pointer-events: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__track {
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #c4c8ce 0 calc(var(--logic-slider-value, 0.5) * 100%),
+    #53575f calc(var(--logic-slider-value, 0.5) * 100%) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__thumb,
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__input {
+  display: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lanes {
+  grid-auto-rows: 78px;
+  background: #262a30;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lanes::before {
+  background: rgba(240, 243, 247, 0.92);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane__grid {
+  min-height: 78px;
+  padding: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    #2f3339;
+  background-size: calc(100% / var(--logic-columns)) 100%, 100% 26px, auto;
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display {
+  min-height: 66px;
+  margin: 6px 8px;
+  border-radius: 0;
+  border: 1px solid rgba(52, 105, 176, 0.34);
 }

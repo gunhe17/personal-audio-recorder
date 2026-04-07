@@ -4,10 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Session Detail</title>
-    <link rel="stylesheet" href="./design-system.css" />
-    <link rel="stylesheet" href="./app.css" />
+    <link rel="stylesheet" href="/design-system.css" />
+    <link rel="stylesheet" href="/vendor/waveform-playlist.css" />
+    <link rel="stylesheet" href="/app.css" />
   </head>
-  <body>
+  <body class="session-page">
     <div class="logic-screen logic-screen--session">
       <header id="logic-windowbar" class="logic-windowbar" data-stagger="1"></header>
       <main class="logic-main logic-main--session" data-stagger="2">
@@ -24,10 +25,10 @@
           </div>
         </section>
       </main>
+      <div id="logic-modal-root"></div>
     </div>
-
-    <script src="./ui.js"></script>
-    <script src="./mock-data.js"></script>
-    <script src="./session-detail.js"></script>
+    <script src="/vendor/wavesurfer.min.js"></script>
+    <script src="/vendor/waveform-playlist.var.js"></script>
+    <script src="/session-detail.js"></script>
   </body>
 </html>

@@ -28,12 +28,15 @@
 
 ### 3.1 지원하려는 장비군
 
-초기 타깃은 아래 두 계열이다.
+이 프로젝트는 홈 PC에서 인식되는 `모든 오디오 입력 장치`를 대상으로 한다.
+
+초기 고밀도 운용 타깃은 아래 두 계열이다.
 
 - `Behringer X32` 계열
 - `Yamaha TF Series` 계열
 
-이 장비들은 USB 오디오 인터페이스 역할을 하며, 콘솔 내부 라우팅 결과를 컴퓨터 입력 채널로 전달한다.
+이 장비들은 USB 오디오 인터페이스 역할을 하며, 콘솔 내부 라우팅 결과를 컴퓨터 입력 채널로 전달한다.  
+동시에 내장 마이크, 1ch/2ch USB 인터페이스, 기타 일반 CoreAudio/ASIO 입력 장치도 `generic profile`로 사용할 수 있어야 한다.
 
 ### 3.2 장비별 도메인 특성
 
@@ -183,7 +186,7 @@ Recorder Server는 `Rust`로 구현한다.
 
 ### 포함
 
-- 단일 USB 오디오 디바이스 선택
+- 단일 오디오 입력 디바이스 선택
 - 최대 34채널 입력 캡처
 - 채널별 mono WAV 저장
 - 세션 메타데이터 저장
@@ -356,12 +359,22 @@ Storage Driver
   - `ST L`
   - `ST R`
 
+#### `generic-N`
+
+- `N`은 실제 입력 채널 수
+- 예: `generic-1`, `generic-2`, `generic-8`
+- `expectedInputChannels = N`
+- `preferredBitDepth = 24`
+- sample rate는 장치가 지원하는 값과 profile 선호 값의 교집합으로 결정한다
+- 기본 track label은 `Input 01` ~ `Input NN`
+
 ### 13.3 프로파일 적용 규칙
 
 1. 사용자가 오디오 디바이스를 선택한다.
-2. 사용자가 device profile을 선택한다.
-3. 앱은 실제 입력 채널 수와 프로파일 기대 채널 수를 비교한다.
-4. 둘이 다르면 경고를 띄우고 시작을 막는다.
+2. 앱은 해당 디바이스와 호환되는 profile 목록을 보여준다.
+3. 사용자는 전용 profile 또는 `generic-N` profile을 선택한다.
+4. 앱은 실제 입력 채널 수와 프로파일 기대 채널 수를 비교한다.
+5. 둘이 다르면 경고를 띄우고 시작을 막는다.
 
 예:
 
@@ -1080,14 +1093,15 @@ session.zip
 
 1. 장치 선택
 2. device profile 선택
-3. 저장 타깃 선택
-4. 세션 제목 입력
-5. 채널 리스트
-6. armed 토글
-7. 채널 이름 편집
-8. Start / Stop 버튼
-9. 실시간 상태 바
-10. track meter grid
+3. sample rate 선택
+4. 저장 타깃 선택
+5. 세션 제목 입력
+6. 채널 리스트
+7. armed 토글
+8. 채널 이름 편집
+9. Start / Stop 버튼
+10. 실시간 상태 바
+11. track meter grid
 11. 저장 세션 목록
 
 ### 저장 타깃 선택 규칙
