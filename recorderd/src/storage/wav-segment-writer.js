@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  buildWaveformBinsFromI32,
   clamp24Bit,
   computePeakLinearFromI32,
   downsampleWaveformBins,
@@ -31,6 +32,7 @@ export class WavSegmentWriter {
     this.filePath = filePath;
     this.format = format;
     this.maxWaveformBins = options.maxWaveformBins || 160;
+    this.waveformBinsPerWrite = Math.max(1, Number(options.waveformBinsPerWrite) || 24);
     this.dataBytes = 0;
     this.writeStream = null;
     this.readyPromise = null;
@@ -66,6 +68,7 @@ export class WavSegmentWriter {
   async writeFramesI32(samples) {
     const buffer = Buffer.alloc(samples.length * 3);
     const blockPeakLinear = computePeakLinearFromI32(samples);
+    const blockWaveformBins = buildWaveformBinsFromI32(samples, this.waveformBinsPerWrite);
 
     for (let index = 0; index < samples.length; index += 1) {
       const value = clamp24Bit(samples[index]);
@@ -78,7 +81,7 @@ export class WavSegmentWriter {
 
     this.dataBytes += buffer.length;
     this.peakLinear = Math.max(this.peakLinear, blockPeakLinear);
-    this.waveformPeaksRaw.push(Number(blockPeakLinear.toFixed(4)));
+    this.waveformPeaksRaw.push(...blockWaveformBins);
 
     await new Promise((resolve, reject) => {
       this.writeStream.write(buffer, function (error) {

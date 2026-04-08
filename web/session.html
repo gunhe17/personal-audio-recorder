@@ -12,16 +12,18 @@
     <div class="logic-screen logic-screen--session">
       <header id="logic-windowbar" class="logic-windowbar" data-stagger="1"></header>
       <main class="logic-main logic-main--session" data-stagger="2">
-        <section class="logic-arrange logic-arrange--session">
-          <div class="logic-arrange__top">
+        <section class="logic-arrange logic-arrange--session logic-arrange--unified">
+          <div class="logic-arrange__left">
             <div id="logic-arrange-corner" class="logic-arrange__corner logic-arrange__corner--session"></div>
-            <div class="logic-sidebar-resizer logic-sidebar-resizer--top" data-track-resizer role="separator" aria-orientation="vertical" aria-label="Resize track info panel" aria-valuemin="180" aria-valuemax="520" aria-valuenow="320" tabindex="0"></div>
-            <div id="logic-ruler" class="logic-ruler"></div>
-          </div>
-          <div class="logic-arrange__body">
             <div id="logic-track-headers" class="logic-track-headers"></div>
-            <div class="logic-sidebar-resizer logic-sidebar-resizer--body" data-track-resizer aria-hidden="true"></div>
-            <div id="logic-track-lanes" class="logic-track-lanes"></div>
+          </div>
+          <div class="logic-sidebar-resizer" data-track-resizer role="separator" aria-orientation="vertical" aria-label="Resize track info panel" aria-valuemin="260" aria-valuemax="520" aria-valuenow="320" tabindex="0"></div>
+          <div id="logic-timeline-scroll" class="logic-timeline-scroll">
+            <div id="logic-timeline-content" class="logic-timeline-content">
+              <div id="logic-ruler" class="logic-ruler"></div>
+              <div id="logic-track-lanes" class="logic-track-lanes"></div>
+              <div id="logic-playhead" class="logic-playhead" aria-hidden="true"></div>
+            </div>
           </div>
         </section>
       </main>
@@ -29,6 +31,8 @@
     </div>
     <script src="/vendor/wavesurfer.min.js"></script>
     <script src="/vendor/waveform-playlist.var.js"></script>
+    <script src="/hero-icons.js"></script>
+    <script src="/editor-layout.js"></script>
     <script src="/session-detail.js"></script>
   </body>
 </html>

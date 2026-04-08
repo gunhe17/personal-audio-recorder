@@ -56,7 +56,8 @@ export class LocalFsStore {
     );
 
     return new WavSegmentWriter(filePath, format, {
-      maxWaveformBins: this.config.maxWaveformBins
+      maxWaveformBins: this.config.maxWaveformBins,
+      waveformBinsPerWrite: this.config.liveWaveformBins
     }).init();
   }
 

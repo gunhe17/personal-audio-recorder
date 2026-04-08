@@ -21,6 +21,41 @@ function armedTrackChannels(manifest) {
     });
 }
 
+function normalizeTrackChannels(trackChannels, maxChannels) {
+  const source = Array.isArray(trackChannels) ? trackChannels : [];
+  const seen = new Set();
+  const normalized = [];
+
+  for (const value of source) {
+    const channel = Number.parseInt(value, 10);
+
+    if (!Number.isFinite(channel) || channel < 1 || channel > maxChannels || seen.has(channel)) {
+      continue;
+    }
+
+    seen.add(channel);
+    normalized.push(channel);
+  }
+
+  return normalized;
+}
+
+function monitorConfigKey(config) {
+  if (!config) {
+    return "";
+  }
+
+  return JSON.stringify({
+    deviceId: config.deviceId,
+    sampleRate: config.sampleRate,
+    trackChannels: config.trackChannels
+  });
+}
+
+function areMonitorConfigsEqual(left, right) {
+  return monitorConfigKey(left) === monitorConfigKey(right);
+}
+
 function buildStatePayload(state) {
   return {
     state: state.state,
@@ -49,6 +84,11 @@ export class SessionManager extends EventEmitter {
       storageTarget: null
     };
     this.runtime = null;
+    this.monitorState = {
+      config: null,
+      runtime: null,
+      suspendedByRecording: false
+    };
   }
 
   async init() {
@@ -99,6 +139,79 @@ export class SessionManager extends EventEmitter {
     }
 
     return buildStatePayload(this.recorderState);
+  }
+
+  getMonitorState() {
+    return {
+      enabled: Boolean(this.monitorState.config),
+      active: Boolean(this.monitorState.runtime),
+      suspended: Boolean(this.runtime) || this.monitorState.suspendedByRecording,
+      deviceId: this.monitorState.config?.deviceId || null,
+      sampleRate: this.monitorState.config?.sampleRate || null,
+      trackChannels: this.monitorState.config?.trackChannels || []
+    };
+  }
+
+  async configureMonitor(request) {
+    await this.deviceManager.refresh();
+
+    if (request?.enabled === false || !request?.deviceId) {
+      await this.stopMonitorStream({
+        clearConfig: true,
+        clearSuspended: true
+      });
+      return this.getMonitorState();
+    }
+
+    const device = this.deviceManager.getDevice(request.deviceId);
+
+    if (!device) {
+      throw createApiError(404, "DEVICE_NOT_FOUND", "The selected input device could not be found.");
+    }
+
+    const sampleRate = Number.parseInt(request.sampleRate, 10);
+
+    if (!Number.isFinite(sampleRate) || !device.sampleRates.includes(sampleRate)) {
+      throw createApiError(400, "UNSUPPORTED_SAMPLE_RATE", "The selected monitor sample rate is not supported by the device.");
+    }
+
+    const trackChannels = normalizeTrackChannels(request.trackChannels, device.inputChannels);
+
+    if (!trackChannels.length) {
+      throw createApiError(400, "MONITOR_CHANNELS_INVALID", "At least one valid monitor channel is required.");
+    }
+
+    const nextConfig = {
+      deviceId: device.id,
+      backend: device.backend,
+      expectedChannels: device.inputChannels,
+      sampleRate,
+      trackChannels
+    };
+    const configChanged = !areMonitorConfigsEqual(this.monitorState.config, nextConfig)
+      || this.monitorState.config?.backend !== nextConfig.backend
+      || this.monitorState.config?.expectedChannels !== nextConfig.expectedChannels;
+
+    this.monitorState.config = nextConfig;
+
+    if (this.runtime) {
+      this.monitorState.suspendedByRecording = true;
+
+      if (configChanged && this.monitorState.runtime) {
+        await this.stopMonitorStream({
+          clearConfig: false,
+          clearSuspended: false
+        });
+      }
+
+      return this.getMonitorState();
+    }
+
+    if (configChanged || !this.monitorState.runtime) {
+      await this.ensureMonitorStream();
+    }
+
+    return this.getMonitorState();
   }
 
   async listSessions() {
@@ -228,6 +341,12 @@ export class SessionManager extends EventEmitter {
       failing: false
     };
 
+    await this.stopMonitorStream({
+      clearConfig: false,
+      clearSuspended: false
+    });
+    this.monitorState.suspendedByRecording = true;
+
     await this.openSegmentWriters(runtime, 1);
 
     const backend = this.deviceManager.getBackend(manifest.device.backend);
@@ -257,6 +376,9 @@ export class SessionManager extends EventEmitter {
     } catch (error) {
       this.runtime = null;
       await this.abortOpenTrackWriters(runtime);
+      this.monitorState.suspendedByRecording = false;
+      await this.ensureMonitorStream().catch(function () {
+      });
       throw createApiError(500, "AUDIO_BACKEND_ERROR", error.message || "Unable to open the selected audio input stream.");
     }
 
@@ -281,7 +403,11 @@ export class SessionManager extends EventEmitter {
   }
 
   async stop(sessionId) {
-    if (!this.runtime || this.runtime.manifest.id !== sessionId) {
+    if (!this.runtime) {
+      throw createApiError(400, "RECORDER_NOT_PREPARED", "No active recorder session matches the request.");
+    }
+
+    if (sessionId && this.runtime.manifest.id !== sessionId) {
       throw createApiError(400, "RECORDER_NOT_PREPARED", "No active recorder session matches the request.");
     }
 
@@ -298,13 +424,29 @@ export class SessionManager extends EventEmitter {
     runtime.stopRequested = true;
 
     if (runtime.activeStream) {
-      await runtime.activeStream.stop();
+      await runtime.activeStream.stop().catch((error) => {
+        runtime.manifest.dropEvents.push({
+          detectedAt: nowIso(),
+          reason: "STREAM_STOP_FAILED",
+          message: error?.message || "Unable to stop backend stream cleanly."
+        });
+      });
     }
 
     await this.drainQueue(runtime);
 
     if (runtime.currentSegmentFrameCount > 0) {
-      await this.finalizeCurrentSegment(runtime);
+      try {
+        await this.finalizeCurrentSegment(runtime);
+      } catch (error) {
+        runtime.manifest.dropEvents.push({
+          detectedAt: nowIso(),
+          reason: "SEGMENT_FINALIZE_FAILED",
+          message: error?.message || "Unable to finalize one or more audio segment files."
+        });
+        await this.abortOpenTrackWriters(runtime).catch(function () {
+        });
+      }
     } else {
       await this.abortOpenTrackWriters(runtime);
     }
@@ -343,6 +485,9 @@ export class SessionManager extends EventEmitter {
       sessionId: runtime.manifest.id
     });
     this.emit("recorder_state_changed", this.getRecorderState());
+    this.monitorState.suspendedByRecording = false;
+    await this.ensureMonitorStream().catch(function () {
+    });
 
     return runtime.manifest;
   }
@@ -389,6 +534,120 @@ export class SessionManager extends EventEmitter {
       ...this.recorderState,
       ...nextState
     };
+  }
+
+  async stopMonitorStream(options = {}) {
+    const clearConfig = options.clearConfig === true;
+    const clearSuspended = options.clearSuspended !== false;
+    const runtime = this.monitorState.runtime;
+
+    this.monitorState.runtime = null;
+
+    if (runtime?.activeStream) {
+      await runtime.activeStream.stop().catch(function () {
+      });
+    }
+
+    if (clearConfig) {
+      this.monitorState.config = null;
+    }
+
+    if (clearSuspended) {
+      this.monitorState.suspendedByRecording = false;
+    }
+  }
+
+  emitMonitorMeterUpdate(runtime, block) {
+    if (runtime !== this.monitorState.runtime || this.runtime) {
+      return;
+    }
+
+    runtime.sampleCursor += block.frameCount;
+    this.emit("meter_update", {
+      sessionId: null,
+      durationFrames: runtime.sampleCursor,
+      sampleRate: runtime.config.sampleRate,
+      channels: block.channels.map((channel) => {
+        return {
+          usbChannel: channel.usbChannel,
+          peakDbfs: channel.peakDbfs,
+          waveformPeaks: buildWaveformBinsFromI32(channel.samples, this.config.liveWaveformBins)
+        };
+      })
+    });
+  }
+
+  async handleMonitorRuntimeError(runtime, error) {
+    if (runtime !== this.monitorState.runtime) {
+      return;
+    }
+
+    await this.stopMonitorStream({
+      clearConfig: false,
+      clearSuspended: false
+    });
+
+    if (!this.runtime) {
+      this.monitorState.suspendedByRecording = false;
+    }
+
+    void error;
+  }
+
+  async ensureMonitorStream() {
+    if (this.runtime || !this.monitorState.config) {
+      return;
+    }
+
+    const existingRuntime = this.monitorState.runtime;
+
+    if (existingRuntime && areMonitorConfigsEqual(existingRuntime.config, this.monitorState.config)) {
+      return;
+    }
+
+    await this.stopMonitorStream({
+      clearConfig: false,
+      clearSuspended: false
+    });
+
+    const config = this.monitorState.config;
+    const backend = this.deviceManager.getBackend(config.backend);
+
+    if (!backend) {
+      throw createApiError(500, "AUDIO_BACKEND_ERROR", "No audio backend is available for " + config.backend + ".");
+    }
+
+    const runtime = {
+      config,
+      activeStream: null,
+      sampleCursor: 0
+    };
+
+    this.monitorState.runtime = runtime;
+    this.monitorState.suspendedByRecording = false;
+
+    try {
+      runtime.activeStream = await backend.openInputStream({
+        deviceId: config.deviceId,
+        sampleRate: config.sampleRate,
+        expectedChannels: config.expectedChannels,
+        framesPerBufferHint: this.config.framesPerBufferHint,
+        trackChannels: config.trackChannels,
+        onAudioBlock: (block) => {
+          this.emitMonitorMeterUpdate(runtime, block);
+        },
+        onError: (error) => {
+          this.handleMonitorRuntimeError(runtime, error).catch(function () {
+          });
+        }
+      });
+    } catch (error) {
+      await this.stopMonitorStream({
+        clearConfig: false,
+        clearSuspended: false
+      });
+      throw createApiError(500, "AUDIO_BACKEND_ERROR", error.message || "Unable to open monitor input stream.");
+    }
   }
 
   enqueueAudioBlock(runtime, block) {
@@ -606,5 +865,8 @@ export class SessionManager extends EventEmitter {
       status: "failed"
     });
     this.emit("recorder_state_changed", this.getRecorderState());
+    this.monitorState.suspendedByRecording = false;
+    await this.ensureMonitorStream().catch(function () {
+    });
   }
 }

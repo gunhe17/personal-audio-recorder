@@ -4843,12 +4843,178 @@ body.session-playground-page::before {
   display: grid;
   gap: 22px;
   padding: 32px 24px 48px;
+  --logic-pg-topbar-chrome-start: var(--logic-ds-surface-chrome-start);
+  --logic-pg-topbar-chrome-end: var(--logic-ds-surface-chrome-end);
+  --logic-pg-display-start: var(--logic-ds-editor-base);
+  --logic-pg-display-end: var(--logic-ds-canvas-start);
+  --logic-pg-display-label: var(--logic-ds-text-secondary);
+  --logic-pg-display-time: var(--logic-ds-text-primary);
+  --logic-pg-settings-start: var(--logic-ds-surface-panel-start);
+  --logic-pg-settings-end: var(--logic-ds-surface-panel-end);
+  --logic-pg-settings-fg: var(--logic-ds-text-primary);
+  --logic-pg-action-start: var(--logic-ds-surface-panel-start);
+  --logic-pg-action-end: var(--logic-ds-surface-panel-end);
+  --logic-pg-action-fg: var(--logic-ds-text-primary);
+  --logic-pg-record-start: var(--logic-ds-accent-start);
+  --logic-pg-record-end: var(--logic-ds-accent-end);
+  --logic-pg-stop-icon: var(--logic-ds-text-primary);
+}
+
+.logic-playground__palette {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(31, 41, 55, 0.9);
+}
+
+.logic-playground__palette-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logic-playground__palette-head h2 {
+  margin: 0;
+  color: #f3f3f3;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.logic-playground__palette-head p {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.logic-playground__palette-reset {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  background: #111827;
+  color: #f2f5fb;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logic-playground__palette-reset:hover,
+.logic-playground__palette-reset:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.38);
+  background: #4b5563;
+}
+
+.logic-playground__palette-grid {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.logic-playground__palette-field {
+  flex: 0 0 220px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.logic-playground__palette-field span {
+  color: rgba(245, 248, 252, 0.86);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.logic-playground__palette-input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.logic-playground__palette-input input[type="color"] {
+  width: 34px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.logic-playground__palette-input code {
+  color: rgba(220, 227, 237, 0.88);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  min-width: 64px;
+  text-align: right;
 }
 
 .logic-playground__head,
 .logic-playground__section {
   display: grid;
   gap: 14px;
+}
+
+.logic-playground__system {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(31, 41, 55, 0.9);
+}
+
+.logic-playground__system h2 {
+  margin: 0;
+  color: var(--logic-ds-text-primary, #f9fafb);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.logic-playground__system-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.logic-playground__system-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logic-playground__system-item h3 {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.logic-playground__system-item p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .logic-playground__eyebrow {
@@ -4905,7 +5071,7 @@ body.session-playground-page::before {
   display: grid;
   gap: 10px;
   padding: 12px 14px;
-  background: linear-gradient(180deg, #cfcfcf 0%, #b6b6b6 100%);
+  background: var(--logic-pg-topbar-chrome-start, #111827);
 }
 
 .logic-playground-minibar {
@@ -4953,8 +5119,8 @@ body.session-playground-page::before {
 }
 
 .logic-playground-minibar__action--settings {
-  color: #f2f5fb;
-  background: linear-gradient(180deg, #7f848b 0%, #656a71 100%);
+  color: var(--logic-pg-settings-fg, #e5e7eb);
+  background: var(--logic-pg-settings-start, #111827);
 }
 
 .logic-playground-minibar__action--settings .hero-icon {
@@ -4969,7 +5135,7 @@ body.session-playground-page::before {
   padding: 7px 14px 8px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 5px;
-  background: linear-gradient(180deg, #303444 0%, #222734 100%);
+  background: var(--logic-pg-display-start, #111827);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -4983,7 +5149,7 @@ body.session-playground-page::before {
 }
 
 .logic-playground-minibar__display-label {
-  color: #d8dce5;
+  color: var(--logic-pg-display-label, #9ca3af);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -4991,7 +5157,7 @@ body.session-playground-page::before {
 }
 
 .logic-playground-minibar__time {
-  color: #f4f6fb;
+  color: var(--logic-pg-display-time, #ffffff);
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -5015,8 +5181,8 @@ body.session-playground-page::before {
   padding: 0;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 4px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(0,0,0,0.06));
-  color: #303030;
+  background: var(--logic-pg-action-start, #111827);
+  color: var(--logic-pg-action-fg, #e5e7eb);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
@@ -5067,7 +5233,7 @@ body.session-playground-page::before {
 
 .logic-playground-minibar__action--record {
   color: #ffffff;
-  background: linear-gradient(180deg, #e15d52 0%, #c84439 100%);
+  background: var(--logic-pg-record-start, #6366f1);
 }
 
 .logic-playground-minibar__action--record .hero-icon {
@@ -5078,7 +5244,7 @@ body.session-playground-page::before {
 .logic-playground-minibar__action--stop .hero-icon {
   width: 11px;
   height: 11px;
-  color: #2f2f2f;
+  color: var(--logic-pg-stop-icon, #e5e7eb);
 }
 
 .logic-playground-surface--toolbar .logic-shellbar__row--bottom {
@@ -5112,22 +5278,50 @@ body.session-playground-page::before {
   display: none;
 }
 
+body.session-page.session-playground-page .logic-playground-surface--editor.logic-screen.logic-screen--session {
+  grid-template-rows: 1fr;
+  min-height: 118px;
+  height: auto;
+  align-items: center;
+}
+
+.logic-playground-surface--editor {
+  padding-block: 0;
+}
+
 .logic-playground-surface--editor .logic-main {
-  min-height: 78px;
+  min-height: 0;
+  height: auto;
+  grid-template-rows: auto;
 }
 
 .logic-playground-surface--editor .logic-arrange {
+  width: 100%;
   min-height: 78px;
-  grid-template-rows: minmax(0, 1fr);
+  height: 78px;
+  grid-template-rows: auto;
+  align-self: center;
 }
 
 .logic-playground-surface--editor .logic-arrange__body {
   min-height: 78px;
+  height: 78px;
+  align-items: stretch;
 }
 
-.logic-playground-surface--editor .logic-track-lanes,
-.logic-playground-surface--editor .logic-track-headers {
+.logic-playground-surface--editor .logic-track-headers,
+.logic-playground-surface--editor .logic-track-lanes {
+  min-height: 78px;
+  height: 78px;
   overflow: hidden;
+}
+
+.logic-playground-surface--editor .logic-track-headers {
+  grid-auto-rows: 78px;
+}
+
+.logic-playground-surface--editor .logic-track-lanes {
+  align-content: stretch;
 }
 
 .logic-playground-surface--full .logic-main {
@@ -5484,6 +5678,9 @@ body.session-page.session-playground-page .logic-playground-surface--track .logi
 body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-header--session,
 body.session-page.session-playground-page .logic-playground-surface--full .logic-track-header--session {
   grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-content: center;
+  align-items: center;
   gap: 12px;
   padding: 0 14px 0 10px;
 }
@@ -5500,6 +5697,7 @@ body.session-page.session-playground-page .logic-playground-surface--track .logi
 body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-strip__body,
 body.session-page.session-playground-page .logic-playground-surface--full .logic-track-strip__body {
   padding: 0;
+  align-self: stretch;
 }
 
 body.session-page.session-playground-page .logic-playground-track-strip__body--logic {
@@ -5510,6 +5708,7 @@ body.session-page.session-playground-page .logic-playground-track-strip__body--l
 body.session-page.session-playground-page .logic-playground-track-strip__name-area {
   width: 100%;
   min-width: 0;
+  align-self: center;
 }
 
 body.session-page.session-playground-page .logic-playground-track-strip__name {
@@ -5531,32 +5730,42 @@ body.session-page.session-playground-page .logic-playground-track-strip__name {
 .logic-playground-surface--ruler .logic-ruler__grid,
 .logic-playground-surface--full .logic-ruler__grid,
 .logic-playground-surface--editor .logic-ruler__grid {
-  min-height: 38px;
+  min-height: 20px;
   background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px calc(10%)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.12)),
     #3a3a3a;
-  background-size: 100% 100%, 100% 100%, auto;
+  background-size: auto, 100% 100%, auto;
 }
 
 .logic-playground-surface--ruler .logic-ruler__label,
 .logic-playground-surface--full .logic-ruler__label,
 .logic-playground-surface--editor .logic-ruler__label {
-  font-size: 9px;
+  font-size: 10px;
   color: rgba(255, 255, 255, 0.82);
 }
 
 .logic-playground-surface--ruler .logic-ruler__grid::before,
 .logic-playground-surface--full .logic-ruler__grid::before,
 .logic-playground-surface--editor .logic-ruler__grid::before {
-  width: 10px;
-  height: 8px;
+  width: 12px;
+  height: 6px;
 }
 
 .logic-playground-surface--ruler .logic-ruler__grid::after,
 .logic-playground-surface--full .logic-ruler__grid::after,
 .logic-playground-surface--editor .logic-ruler__grid::after {
   background: rgba(225, 232, 240, 0.92);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-arrange,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-arrange {
+  grid-template-rows: 20px minmax(0, 1fr);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-arrange__top,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-arrange__top {
+  min-height: 20px;
 }
 
 .logic-playground-track-lanes {
@@ -5586,10 +5795,10 @@ body.session-page.session-playground-page .logic-playground-track-lanes .logic-t
   height: 78px;
   min-height: 78px;
   background:
-    linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.14) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
     linear-gradient(180deg, rgba(255,255,255,0.08) 1px, transparent 1px),
     #313131;
-  background-size: calc(100% / var(--logic-columns)) 100%, 100% 100%, auto;
+  background-size: auto, 100% 100%, auto;
 }
 
 .logic-playground-surface--full .logic-main {
@@ -5609,7 +5818,10 @@ body.session-page.session-playground-page .logic-playground-track-lanes .logic-t
 /* Session page: apply playground full-editor composition */
 body.session-page:not(.session-playground-page) .logic-screen--session {
   min-height: 100vh;
-  grid-template-rows: 72px minmax(0, 1fr);
+  --logic-sidebar-width: 320px;
+  --logic-ruler-height: 20px;
+  --logic-track-row-height: 78px;
+  grid-template-rows: auto minmax(0, 1fr);
   background: #505358;
 }
 
@@ -5623,21 +5835,35 @@ body.session-page:not(.session-playground-page) #logic-preview {
 }
 
 body.session-page:not(.session-playground-page) .logic-windowbar {
+  display: flex;
+  align-items: center;
   padding: 0;
   border-bottom: 1px solid #888d93;
   background: linear-gradient(180deg, #cfcfcf 0%, #b6b6b6 100%);
 }
 
 body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar-stack {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0;
-  padding: 10px 14px;
+  padding: 12px 14px;
   background: transparent;
 }
 
 body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar {
-  min-height: 50px;
-  padding: 0 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
   border-radius: 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__left,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__center,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__right {
+  min-height: 52px;
+  align-items: center;
 }
 
 body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__display--clock {
@@ -5659,12 +5885,13 @@ body.session-page:not(.session-playground-page) .logic-windowbar .logic-playgrou
 
 body.session-page:not(.session-playground-page) .logic-arrange {
   border-top: 1px solid #7e838a;
-  grid-template-rows: 44px minmax(0, 1fr);
+  grid-template-rows: var(--logic-ruler-height) minmax(0, 1fr);
   background: #2b2d31;
   box-shadow: none;
 }
 
 body.session-page:not(.session-playground-page) .logic-arrange__top {
+  min-height: var(--logic-ruler-height);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: #3c3f45;
 }
@@ -5672,13 +5899,14 @@ body.session-page:not(.session-playground-page) .logic-arrange__top {
 body.session-page:not(.session-playground-page) .logic-arrange__corner {
   display: flex;
   align-items: center;
+  min-height: var(--logic-ruler-height);
   padding: 0 10px;
   border-right: 0;
   background: linear-gradient(180deg, #575b62 0%, #4a4e55 100%);
 }
 
 body.session-page:not(.session-playground-page) .logic-ruler__grid {
-  min-height: 44px;
+  min-height: var(--logic-ruler-height);
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.12)),
@@ -5686,14 +5914,14 @@ body.session-page:not(.session-playground-page) .logic-ruler__grid {
 }
 
 body.session-page:not(.session-playground-page) .logic-ruler__label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(240, 243, 247, 0.82);
 }
 
 body.session-page:not(.session-playground-page) .logic-ruler__grid::before {
-  width: 10px;
-  height: 8px;
+  width: 12px;
+  height: 6px;
   background: rgba(240, 243, 247, 0.92);
 }
 
@@ -5703,13 +5931,13 @@ body.session-page:not(.session-playground-page) .logic-ruler__grid::after {
 }
 
 body.session-page:not(.session-playground-page) .logic-track-headers {
-  grid-auto-rows: 78px;
+  grid-auto-rows: var(--logic-track-row-height);
   border-right: 0;
   background: #808389;
 }
 
 body.session-page:not(.session-playground-page) .logic-track-header--session {
-  min-height: 78px;
+  min-height: var(--logic-track-row-height);
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 12px;
@@ -5808,7 +6036,7 @@ body.session-page:not(.session-playground-page) .logic-playground-strip-slider__
 }
 
 body.session-page:not(.session-playground-page) .logic-track-lanes {
-  grid-auto-rows: 78px;
+  grid-auto-rows: var(--logic-track-row-height);
   background: #262a30;
 }
 
@@ -5821,18 +6049,872 @@ body.session-page:not(.session-playground-page) .logic-track-lane {
 }
 
 body.session-page:not(.session-playground-page) .logic-track-lane__grid {
-  min-height: 78px;
+  min-height: var(--logic-track-row-height);
   padding: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
     linear-gradient(180deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     #2f3339;
-  background-size: calc(100% / var(--logic-columns)) 100%, 100% 26px, auto;
+  background-size: auto, 100% 26px, auto;
 }
 
 body.session-page:not(.session-playground-page) .logic-audio-display {
-  min-height: 66px;
+  min-height: calc(var(--logic-track-row-height) - 12px);
   margin: 6px 8px;
   border-radius: 0;
   border: 1px solid rgba(52, 105, 176, 0.34);
+}
+
+/* Session page: final alignment lock to match Full Editor Mock */
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__left,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__center,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__right,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__transport,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__display,
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__action {
+  align-self: center;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__action {
+  line-height: 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar__display {
+  align-content: center;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__cell {
+  padding: 0;
+  border-right: 0;
+  align-items: center;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__label {
+  line-height: 1;
+}
+
+/* Semantic style system derived from tailwind-example patterns.
+   Case mapping:
+   - Canvas: page background and outer workspace
+   - Chrome: top app bar and transport bar
+   - Panel: timeline/corner/track metadata strips
+   - Editor Field: arrange lanes and canvas
+   - Accent Action: record/selected/focus
+   - Critical State: alert and failure-only states
+*/
+body.session-page {
+  --logic-ds-canvas-start: #0b0d12;
+  --logic-ds-canvas-end: #090b10;
+  --logic-ds-surface-chrome-start: #d8dade;
+  --logic-ds-surface-chrome-end: #c9ccd2;
+  --logic-ds-surface-panel-start: #4e525a;
+  --logic-ds-surface-panel-end: #40444b;
+  --logic-ds-editor-base: #2b2f36;
+  --logic-ds-text-primary: #f3f5f8;
+  --logic-ds-text-secondary: #d6d9e0;
+  --logic-ds-border-soft: #5f656e;
+  --logic-ds-border-strong: #787e88;
+  --logic-ds-grid: #525863;
+  --logic-ds-accent-start: #3b82f6;
+  --logic-ds-accent-end: #2563eb;
+  --logic-ds-danger-start: #e25147;
+  --logic-ds-danger-end: #cf433a;
+  --logic-ds-playhead: #ffffff;
+  background: linear-gradient(180deg, var(--logic-ds-canvas-start), var(--logic-ds-canvas-end));
+  color: var(--logic-ds-text-primary);
+}
+
+body.session-page.session-playground-page {
+  background: linear-gradient(180deg, var(--logic-ds-canvas-start, #0b0d12), var(--logic-ds-canvas-end, #090b10));
+}
+
+body.session-page.session-playground-page .logic-playground {
+  --logic-pg-page-bg: var(--logic-ds-canvas-end, #111827);
+  --logic-pg-surface: var(--logic-ds-editor-base, #111827);
+  --logic-pg-surface-2: var(--logic-ds-surface-panel-start, #111827);
+  --logic-pg-surface-3: var(--logic-ds-surface-panel-end, #111827);
+  --logic-pg-border: var(--logic-ds-border-strong, #4b5563);
+  --logic-pg-border-soft: var(--logic-ds-border-soft, #4b5563);
+  --logic-pg-grid: var(--logic-ds-grid, #4b5563);
+  --logic-pg-text: var(--logic-ds-text-primary, #f9fafb);
+  --logic-pg-muted: var(--logic-ds-text-secondary, #f9fafb);
+}
+
+body.session-page:not(.session-playground-page) {
+  background: linear-gradient(180deg, var(--logic-ds-canvas-start), var(--logic-ds-canvas-end));
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session {
+  background: var(--logic-ds-editor-base);
+}
+
+body.session-page.session-playground-page .logic-playground__head h1,
+body.session-page.session-playground-page .logic-playground__section-head h2 {
+  color: var(--logic-ds-text-primary, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground__eyebrow,
+body.session-page.session-playground-page .logic-playground__copy,
+body.session-page.session-playground-page .logic-playground__section-head p {
+  color: var(--logic-ds-text-secondary, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground__system,
+body.session-page.session-playground-page .logic-playground__palette {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(17, 24, 39, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body.session-page.session-playground-page .logic-playground__palette-field {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.session-page.session-playground-page .logic-playground__palette-field span,
+body.session-page.session-playground-page .logic-playground__palette-input code,
+body.session-page.session-playground-page .logic-playground__system-item h3 {
+  color: var(--logic-ds-text-primary, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground__system-item p {
+  color: var(--logic-ds-text-secondary, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground-surface,
+body.session-page:not(.session-playground-page) .logic-screen--session {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 16px 36px rgba(2, 6, 23, 0.32),
+    0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body.session-page.session-playground-page .logic-playground-minibar-stack {
+  background: var(--logic-ds-surface-chrome-start, #111827);
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    180deg,
+    var(--logic-ds-surface-chrome-start, #d8dade) 0%,
+    var(--logic-ds-surface-chrome-end, #c9ccd2) 100%
+  );
+  box-shadow:
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 8px rgba(2, 6, 23, 0.2);
+}
+
+body.session-page:not(.session-playground-page) .logic-windowbar .logic-playground-minibar-stack {
+  background: transparent;
+}
+
+body.session-page .logic-playground-minibar__display {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--logic-ds-editor-base, #111827);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+body.session-page .logic-playground-minibar__display-label {
+  color: var(--logic-ds-text-secondary, #f9fafb);
+}
+
+body.session-page .logic-playground-minibar__time {
+  color: var(--logic-ds-text-primary, #f9fafb);
+}
+
+body.session-page .logic-playground-minibar__action {
+  border-color: rgba(38, 42, 52, 0.28);
+  background: linear-gradient(
+    180deg,
+    var(--logic-ds-surface-chrome-start, #d8dade) 0%,
+    var(--logic-ds-surface-chrome-end, #c9ccd2) 100%
+  );
+  color: #394150;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.session-page .logic-playground-minibar__action:hover:not(:disabled),
+body.session-page .logic-playground-minibar__action:focus-visible:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+body.session-page .logic-playground-minibar__action--settings {
+  color: #394150;
+}
+
+body.session-page .logic-playground-minibar__action--record {
+  background: var(--logic-ds-accent-start, #6366f1);
+  color: #ffffff;
+}
+
+body.session-page .logic-playground-minibar__action--record:hover:not(:disabled),
+body.session-page .logic-playground-minibar__action--record:focus-visible:not(:disabled) {
+  background: var(--logic-ds-accent-end, #6366f1);
+}
+
+body.session-page .logic-playground-minibar__action--stop {
+  color: #394150;
+}
+
+body.session-page .logic-playground-minibar__action--record.is-recording {
+  background: var(--logic-ds-danger-start, #ef4444);
+}
+
+body.session-page.session-playground-page .logic-playground-corner-note,
+body.session-page:not(.session-playground-page) .logic-playground-corner-note {
+  color: var(--logic-ds-text-secondary, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-arrange,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-arrange,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-arrange,
+body.session-page:not(.session-playground-page) .logic-arrange {
+  background: var(--logic-ds-editor-base, #111827);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-arrange__top,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-arrange__top,
+body.session-page:not(.session-playground-page) .logic-arrange__top {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    180deg,
+    var(--logic-ds-surface-panel-start, #4e525a) 0%,
+    var(--logic-ds-surface-panel-end, #40444b) 100%
+  );
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-arrange__corner,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-arrange__corner,
+body.session-page:not(.session-playground-page) .logic-arrange__corner {
+  border-right-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    180deg,
+    var(--logic-ds-surface-panel-start, #4e525a) 0%,
+    var(--logic-ds-surface-panel-end, #40444b) 100%
+  );
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-ruler__grid,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-ruler__grid,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-ruler__grid,
+body.session-page:not(.session-playground-page) .logic-ruler__grid {
+  background:
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.2) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
+    var(--logic-ds-editor-base, #111827);
+  background-size: auto, auto;
+  background-position: 0 0, 0 0;
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-ruler__grid::before,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-ruler__grid::before,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-ruler__grid::before,
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-ruler__grid::after,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-ruler__grid::after,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-ruler__grid::after,
+body.session-page:not(.session-playground-page) .logic-ruler__grid::before,
+body.session-page:not(.session-playground-page) .logic-ruler__grid::after,
+body.session-page:not(.session-playground-page) .logic-track-lanes::before {
+  background: var(--logic-ds-playhead, #f9fafb);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-headers,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-headers,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-headers,
+body.session-page:not(.session-playground-page) .logic-track-headers {
+  background: linear-gradient(
+    180deg,
+    var(--logic-ds-surface-panel-start, #4e525a) 0%,
+    var(--logic-ds-surface-panel-end, #40444b) 100%
+  );
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.28);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-header--session,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-header--session,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-header--session,
+body.session-page:not(.session-playground-page) .logic-track-header--session {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.08));
+  grid-template-rows: 1fr;
+  align-content: center;
+  align-items: center;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-header--session.is-selected,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-header--session.is-selected,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-header--session.is-selected,
+body.session-page:not(.session-playground-page) .logic-track-header--session.is-selected {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.08));
+  box-shadow:
+    inset 2px 0 0 var(--logic-ds-accent-start, #6366f1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.session-page.session-playground-page .logic-playground-surface--track .logic-track-strip__index,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-track-strip__index,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-strip__index,
+body.session-page.session-playground-page .logic-playground-track-strip__name,
+body.session-page:not(.session-playground-page) .logic-track-strip__index,
+body.session-page:not(.session-playground-page) .logic-track-name__display--session,
+body.session-page:not(.session-playground-page) .logic-track-name__input--session {
+  color: var(--logic-ds-text-primary, #f9fafb);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-strip__index {
+  border-right-color: var(--logic-ds-border-soft, #4b5563);
+}
+
+body.session-page.session-playground-page .logic-playground-track-lanes,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-lanes,
+body.session-page:not(.session-playground-page) .logic-track-lanes {
+  background: var(--logic-ds-editor-base, #111827);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-playground-empty-canvas {
+  padding: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
+    linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    var(--logic-ds-editor-base, #111827);
+  background-size: auto, 100% 26px, auto;
+  background-position: 0 0, 0 0, 0 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  padding: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.2) 0 1px, transparent 1px calc(100% / var(--logic-columns))),
+    linear-gradient(180deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+    var(--logic-ds-editor-base, #111827);
+  background-size: auto, 100% 26px, auto;
+  background-position: 0 0, 0 0, 0 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display {
+  border-color: rgba(129, 140, 248, 0.34);
+}
+
+body.session-page.session-playground-page .logic-playground-strip-slider__track,
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__track {
+  background: linear-gradient(
+    90deg,
+    var(--logic-ds-text-secondary, #f9fafb) 0 calc(var(--logic-slider-value, 0.5) * 100%),
+    var(--logic-ds-surface-panel-end, #111827) calc(var(--logic-slider-value, 0.5) * 100%) 100%
+  );
+}
+
+body.session-page .logic-sidebar-resizer::before {
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 0.45;
+}
+
+body.session-page .logic-sidebar-resizer::after {
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0.42;
+}
+
+body.session-page .logic-sidebar-resizer:hover::before,
+body.session-page .logic-sidebar-resizer:focus-visible::before,
+body.session-page .logic-screen--session.is-resizing .logic-sidebar-resizer::before {
+  opacity: 0.78;
+}
+
+body.session-page .logic-sidebar-resizer:hover::after,
+body.session-page .logic-sidebar-resizer:focus-visible::after,
+body.session-page .logic-screen--session.is-resizing .logic-sidebar-resizer::after {
+  opacity: 0.6;
+}
+
+/* Unified grid system: one column grid definition shared by ruler + track canvas */
+body.session-page {
+  --logic-unified-grid-x: repeating-linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.2) 0 1px,
+    transparent 1px calc(100% / var(--logic-columns))
+  );
+}
+
+body.session-page.session-playground-page .logic-playground-surface--ruler .logic-ruler__grid,
+body.session-page.session-playground-page .logic-playground-surface--editor .logic-ruler__grid,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-ruler__grid,
+body.session-page:not(.session-playground-page) .logic-ruler__grid {
+  background: var(--logic-unified-grid-x), var(--logic-ds-editor-base, #111827) !important;
+  background-size: auto, auto !important;
+  background-position: 0 0, 0 0 !important;
+}
+
+body.session-page.session-playground-page .logic-playground-track-lanes,
+body.session-page.session-playground-page .logic-playground-surface--full .logic-track-lanes,
+body.session-page:not(.session-playground-page) .logic-track-lanes {
+  background:
+    var(--logic-unified-grid-x),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 26px),
+    var(--logic-ds-editor-base, #111827) !important;
+  background-size: auto, auto, auto !important;
+  background-position: 0 0, 0 0, 0 0 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-playground-track-lanes .logic-track-lane--session .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-playground-empty-canvas {
+  padding: 0 !important;
+  background: transparent !important;
+  background-size: auto !important;
+  background-position: 0 0 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session.is-selected .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-playground-track-lanes .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Flat surface pass:
+   keep gradient only on the header TIME screen */
+body.session-page .logic-windowbar,
+body.session-page .logic-arrange__top,
+body.session-page .logic-arrange__corner,
+body.session-page .logic-track-headers,
+body.session-page .logic-track-header--session,
+body.session-page .logic-track-header--session.is-selected,
+body.session-page .logic-playground-minibar__action,
+body.session-page .logic-playground-minibar__action--settings,
+body.session-page .logic-playground-minibar__action--record,
+body.session-page .logic-playground-minibar__action--stop {
+  background-image: none !important;
+}
+
+body.session-page .logic-windowbar {
+  background-color: var(--logic-ds-surface-chrome-start, #d8dade) !important;
+}
+
+body.session-page .logic-arrange__top,
+body.session-page .logic-arrange__corner,
+body.session-page .logic-track-headers {
+  background-color: var(--logic-ds-surface-panel-start, #4e525a) !important;
+}
+
+body.session-page .logic-track-header--session {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.session-page .logic-track-header--session.is-selected {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+body.session-page .logic-playground-minibar__action,
+body.session-page .logic-playground-minibar__action--settings,
+body.session-page .logic-playground-minibar__action--stop {
+  background-color: var(--logic-ds-surface-chrome-end, #c9ccd2) !important;
+}
+
+body.session-page .logic-playground-minibar__action--record,
+body.session-page .logic-playground-minibar__action--record:hover:not(:disabled),
+body.session-page .logic-playground-minibar__action--record:focus-visible:not(:disabled) {
+  background-color: var(--logic-ds-accent-start, #3b82f6) !important;
+}
+
+body.session-page .logic-playground-minibar__action--record.is-recording {
+  background-color: var(--logic-ds-danger-start, #e25147) !important;
+}
+
+body.session-page .logic-playground-strip-slider__track {
+  position: relative;
+  overflow: hidden;
+  background-image: none !important;
+  background-color: #4f5560 !important;
+}
+
+body.session-page .logic-playground-strip-slider__track::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--logic-slider-value, 0.5) * 100%);
+  background: #cfd4db;
+}
+
+body.session-page .logic-playground-minibar__display {
+  background: linear-gradient(180deg, #2f3442 0%, #202633 100%) !important;
+}
+
+/* Shared editor grid contract for both session and playground */
+body.session-page .logic-ruler__grid {
+  background-image: none !important;
+  background-color: var(--logic-ds-editor-base, #2b2f36) !important;
+}
+
+body.session-page .logic-track-lanes {
+  background-image: none !important;
+  background-color: var(--logic-ds-editor-base, #2b2f36) !important;
+}
+
+body.session-page .logic-track-lane--session .logic-track-lane__grid {
+  background-image: none !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+body.session-page .logic-track-lane--session.is-selected .logic-track-lane__grid {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+body.session-page .logic-session-empty-canvas,
+body.session-page .logic-playground-empty-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 78px;
+  background: transparent;
+}
+
+/* Grid visibility lock:
+   keep visible regardless of legacy style overrides */
+body.session-page .logic-ruler__grid {
+  display: grid !important;
+  grid-template-columns: repeat(var(--logic-columns, 10), minmax(0, 1fr)) !important;
+}
+
+body.session-page .logic-ruler__cell {
+  border-right: 0 !important;
+  background: transparent !important;
+}
+
+body.session-page .logic-track-lane__grid {
+  position: relative;
+  z-index: 1;
+}
+
+/* Live metering + waveform pass (session page only) */
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider {
+  --logic-meter-fill-start: #22c55e;
+  --logic-meter-fill-end: #f59e0b;
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__track {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #4f5661 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.session-page:not(.session-playground-page) .logic-playground-strip-slider__track::before {
+  background: linear-gradient(
+    90deg,
+    var(--logic-meter-fill-start, #22c55e) 0%,
+    var(--logic-meter-fill-end, #f59e0b) 100%
+  ) !important;
+  width: calc(var(--logic-slider-value, 0) * 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 8px rgba(34, 197, 94, 0.24);
+  transition: width 70ms linear, background 100ms linear;
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display,
+body.session-page:not(.session-playground-page) .logic-region--display {
+  border-width: 1px;
+  border-style: solid;
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display {
+  margin: 4px 8px;
+  border-color: rgba(79, 175, 255, 0.28);
+  background: rgba(54, 108, 206, 0.1);
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display--empty {
+  opacity: 1;
+}
+
+body.session-page:not(.session-playground-page) .logic-region__wave.logic-waveform__svg,
+body.session-page:not(.session-playground-page) .logic-audio-display__wave.logic-waveform__svg {
+  display: block !important;
+  width: 100%;
+  height: 100%;
+}
+
+body.session-page:not(.session-playground-page) .logic-region__wave.logic-waveform__svg .logic-waveform__shape {
+  fill: rgba(236, 246, 255, 0.88);
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 0.28;
+}
+
+body.session-page:not(.session-playground-page) .logic-audio-display__wave.logic-waveform__svg .logic-waveform__shape {
+  fill: rgba(154, 224, 255, 0.78);
+  stroke: rgba(114, 196, 255, 0.54);
+  stroke-width: 0.36;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-track-lane__grid {
+  position: relative;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-region--timeline {
+  --logic-playhead-left-padding-px: 20px;
+  position: absolute;
+  z-index: 3;
+  top: 4px;
+  bottom: 4px;
+  left: calc(
+    var(--logic-playhead-left-padding-px) + (var(--logic-region-start, 0%) * ((100% - var(--logic-playhead-left-padding-px)) / 100))
+  );
+  width: calc(var(--logic-region-width, 0%) * ((100% - var(--logic-playhead-left-padding-px)) / 100));
+  min-width: 2px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-region--timeline .logic-region__wave.logic-waveform__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Session horizontal time zoom (right track field) */
+body.session-page:not(.session-playground-page) .logic-screen--session {
+  --logic-time-zoom: 1;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lanes {
+  overflow-x: auto !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-ruler__grid,
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-track-lane__grid,
+body.session-page:not(.session-playground-page) .logic-session-empty-canvas {
+  min-width: 100%;
+  width: max(100%, calc(100% * var(--logic-time-zoom, 1)));
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lanes::before {
+  display: none !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-track-lane--session .logic-track-lane__grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc((100% / var(--logic-columns, 10)) * var(--logic-playhead, 0));
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--logic-ds-playhead, #ffffff);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Timeline-only grid: keep grid in ruler, remove it from track field */
+body.session-page .logic-ruler__grid {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.22) 0 1px,
+      transparent 1px calc(100% / var(--logic-columns, 10))
+    ) !important;
+  background-color: var(--logic-ds-editor-base, #2b2f36) !important;
+  background-size: auto !important;
+  background-position: 0 0 !important;
+}
+
+body.session-page .logic-track-lane--session .logic-track-lane__grid,
+body.session-page .logic-playground-empty-canvas,
+body.session-page .logic-session-empty-canvas {
+  background-image: none !important;
+}
+
+/* Final lock: unified timeline scroll + single playhead + no grid (session & playground) */
+body.session-page {
+  --logic-ruler-height: 28px;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session {
+  --logic-resizer-width: 1px;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-arrange.logic-arrange--unified {
+  display: grid !important;
+  grid-template-columns: var(--logic-sidebar-width) var(--logic-resizer-width) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-arrange__left {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: var(--logic-ruler-height) minmax(0, 1fr);
+  border-right: 0;
+  background: #4f5560;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-arrange__corner--session {
+  min-height: var(--logic-ruler-height);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-right: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-track-headers {
+  min-height: 0;
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-right: 0 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-track-headers::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-sidebar-resizer {
+  background: rgba(0, 0, 0, 0.42);
+  border-right: 0;
+  border-left: 0;
+  cursor: col-resize;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-sidebar-resizer::before,
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-sidebar-resizer::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-sidebar-resizer:hover,
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-sidebar-resizer:focus-visible,
+body.session-page:not(.session-playground-page) .logic-screen--session.is-resizing .logic-sidebar-resizer {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-timeline-scroll {
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: #2b2f36;
+  border-left: 0 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-timeline-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-timeline-content {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  width: max(100%, calc(100% * var(--logic-time-zoom, 1)));
+  display: grid;
+  grid-template-rows: var(--logic-ruler-height) minmax(0, 1fr);
+  align-content: start;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-ruler {
+  min-height: var(--logic-ruler-height);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  overflow: visible;
+  background: #4f5560;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-ruler__grid,
+body.session-page.session-playground-page .logic-ruler__grid {
+  min-height: var(--logic-ruler-height);
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+body.session-page .logic-ruler__cell {
+  border-right: 0 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-track-lanes,
+body.session-page.session-playground-page .logic-track-lanes {
+  min-height: calc(100% - var(--logic-ruler-height));
+  background-image: none !important;
+  background-color: #2b2f36 !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-track-lane--session .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-track-lane--session .logic-track-lane__grid,
+body.session-page.session-playground-page .logic-playground-empty-canvas,
+body.session-page:not(.session-playground-page) .logic-session-empty-canvas {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+body.session-page .logic-ruler__grid::before,
+body.session-page .logic-ruler__grid::after,
+body.session-page .logic-track-lanes::before,
+body.session-page .logic-track-lane__grid::before {
+  content: none !important;
+  display: none !important;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.95);
+  z-index: 20;
+  pointer-events: auto;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-playhead::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--logic-ruler-height);
+  width: 10px;
+  height: 7px;
+  transform: translate(-50%, -100%);
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-playhead.is-dragging {
+  border-left-color: rgba(255, 255, 255, 1);
+}
+
+body.session-page:not(.session-playground-page) .logic-screen--session .logic-playground-minibar__display {
+  background: linear-gradient(180deg, #2f3442 0%, #202633 100%) !important;
 }

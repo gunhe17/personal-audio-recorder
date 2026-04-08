@@ -18,6 +18,167 @@
         </div>
       </header>
 
+      <section class="logic-playground__system" aria-label="Design system semantic map">
+        <h2>Semantic Style Map</h2>
+        <div class="logic-playground__system-grid">
+          <article class="logic-playground__system-item">
+            <h3>Canvas</h3>
+            <p>페이지 전체 배경과 바깥 작업면.</p>
+          </article>
+          <article class="logic-playground__system-item">
+            <h3>Chrome</h3>
+            <p>Top App Bar와 transport이 있는 상단 chrome.</p>
+          </article>
+          <article class="logic-playground__system-item">
+            <h3>Panel</h3>
+            <p>Timeline header, corner, track metadata 영역.</p>
+          </article>
+          <article class="logic-playground__system-item">
+            <h3>Editor Field</h3>
+            <p>Arrange lane, grid canvas, waveform 배경.</p>
+          </article>
+          <article class="logic-playground__system-item">
+            <h3>Accent Action</h3>
+            <p>Record, active, selected, focus 같은 상호작용 상태.</p>
+          </article>
+          <article class="logic-playground__system-item">
+            <h3>Critical State</h3>
+            <p>에러/드롭/클리핑 같은 경고성 상태 전용.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="logic-playground__palette" data-playground-palette aria-label="Editor Style Tokens">
+        <div class="logic-playground__palette-head">
+          <div>
+            <h2>Editor Style Tokens</h2>
+            <p>컴포넌트 이름 대신 의미 기준으로 정의한 토큰입니다. 변경 시 페이지 전체 스타일에 반영됩니다.</p>
+          </div>
+          <button class="logic-playground__palette-reset" type="button" data-palette-reset>Default</button>
+        </div>
+        <div class="logic-playground__palette-grid">
+          <label class="logic-playground__palette-field">
+            <span>Canvas Start</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#0b0d12" data-palette-token="--logic-ds-canvas-start" />
+              <code data-palette-value>#0B0D12</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Canvas End</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#090b10" data-palette-token="--logic-ds-canvas-end" />
+              <code data-palette-value>#090B10</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Chrome Start</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#d8dade" data-palette-token="--logic-ds-surface-chrome-start" />
+              <code data-palette-value>#D8DADE</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Chrome End</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#c9ccd2" data-palette-token="--logic-ds-surface-chrome-end" />
+              <code data-palette-value>#C9CCD2</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Panel Start</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#4e525a" data-palette-token="--logic-ds-surface-panel-start" />
+              <code data-palette-value>#4E525A</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Panel End</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#40444b" data-palette-token="--logic-ds-surface-panel-end" />
+              <code data-palette-value>#40444B</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Editor Base</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#2b2f36" data-palette-token="--logic-ds-editor-base" />
+              <code data-palette-value>#2B2F36</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Text Primary</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#f3f5f8" data-palette-token="--logic-ds-text-primary" />
+              <code data-palette-value>#F3F5F8</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Text Secondary</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#d6d9e0" data-palette-token="--logic-ds-text-secondary" />
+              <code data-palette-value>#D6D9E0</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Border Soft</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#5f656e" data-palette-token="--logic-ds-border-soft" />
+              <code data-palette-value>#5F656E</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Border Strong</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#787e88" data-palette-token="--logic-ds-border-strong" />
+              <code data-palette-value>#787E88</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Grid</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#525863" data-palette-token="--logic-ds-grid" />
+              <code data-palette-value>#525863</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Accent Start</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#3b82f6" data-palette-token="--logic-ds-accent-start" />
+              <code data-palette-value>#3B82F6</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Accent End</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#2563eb" data-palette-token="--logic-ds-accent-end" />
+              <code data-palette-value>#2563EB</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Danger Start</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#e25147" data-palette-token="--logic-ds-danger-start" />
+              <code data-palette-value>#E25147</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Danger End</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#cf433a" data-palette-token="--logic-ds-danger-end" />
+              <code data-palette-value>#CF433A</code>
+            </div>
+          </label>
+          <label class="logic-playground__palette-field">
+            <span>Playhead</span>
+            <div class="logic-playground__palette-input">
+              <input type="color" value="#ffffff" data-palette-token="--logic-ds-playhead" />
+              <code data-palette-value>#FFFFFF</code>
+            </div>
+          </label>
+        </div>
+      </section>
+
       <section class="logic-playground__section">
         <div class="logic-playground__section-head">
           <h2>1. Top App Bar</h2>
@@ -28,10 +189,7 @@
             <section class="logic-playground-minibar logic-playground-minibar--clock" aria-label="Clock only top app bar">
               <div class="logic-playground-minibar__left">
                 <button class="logic-playground-minibar__action logic-playground-minibar__action--settings" type="button" title="Settings" aria-label="Settings">
-                  <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  </svg>
+                  <span data-hero-icon="settings"></span>
                 </button>
               </div>
               <div class="logic-playground-minibar__center">
@@ -45,14 +203,10 @@
               <div class="logic-playground-minibar__right">
                 <div class="logic-playground-minibar__transport">
                   <button class="logic-playground-minibar__action logic-playground-minibar__action--record" type="button" title="Record">
-                    <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                    </svg>
+                    <span data-hero-icon="record"></span>
                   </button>
                   <button class="logic-playground-minibar__action logic-playground-minibar__action--stop" type="button" title="Stop">
-                    <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
-                    </svg>
+                    <span data-hero-icon="stop"></span>
                   </button>
                 </div>
               </div>
@@ -98,18 +252,7 @@
               </div>
               <div class="logic-sidebar-resizer logic-sidebar-resizer--top" aria-hidden="true"></div>
               <div class="logic-ruler" style="--logic-columns:10;--logic-playhead:0.25;">
-                <div class="logic-ruler__grid">
-                  <div class="logic-ruler__cell"><span class="logic-ruler__label">1</span></div>
-                  <div class="logic-ruler__cell"></div>
-                  <div class="logic-ruler__cell"><span class="logic-ruler__label">3</span></div>
-                  <div class="logic-ruler__cell"></div>
-                  <div class="logic-ruler__cell"><span class="logic-ruler__label">5</span></div>
-                  <div class="logic-ruler__cell"></div>
-                  <div class="logic-ruler__cell"><span class="logic-ruler__label">7</span></div>
-                  <div class="logic-ruler__cell"></div>
-                  <div class="logic-ruler__cell"><span class="logic-ruler__label">9</span></div>
-                  <div class="logic-ruler__cell"></div>
-                </div>
+                <div class="logic-ruler__grid" data-shared-ruler data-columns="10"></div>
               </div>
             </div>
           </section>
@@ -143,7 +286,7 @@
                 <div class="logic-track-lanes logic-playground-track-lanes" style="--logic-columns:10;--logic-playhead:0.25;">
                   <div class="logic-track-lane logic-track-lane--session">
                     <div class="logic-track-lane__grid">
-                      <div class="logic-playground-empty-canvas" style="grid-column:1 / -1;"></div>
+                      <div class="logic-playground-empty-canvas" data-shared-empty-canvas style="grid-column:1 / -1;"></div>
                     </div>
                   </div>
                 </div>
@@ -162,10 +305,7 @@
             <section class="logic-playground-minibar logic-playground-minibar--clock" aria-label="Clock only top app bar">
               <div class="logic-playground-minibar__left">
                 <button class="logic-playground-minibar__action logic-playground-minibar__action--settings" type="button" title="Settings" aria-label="Settings">
-                  <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  </svg>
+                  <span data-hero-icon="settings"></span>
                 </button>
               </div>
               <div class="logic-playground-minibar__center">
@@ -179,14 +319,10 @@
               <div class="logic-playground-minibar__right">
                 <div class="logic-playground-minibar__transport">
                   <button class="logic-playground-minibar__action logic-playground-minibar__action--record" type="button" title="Record">
-                    <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                    </svg>
+                    <span data-hero-icon="record"></span>
                   </button>
                   <button class="logic-playground-minibar__action logic-playground-minibar__action--stop" type="button" title="Stop">
-                    <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
-                    </svg>
+                    <span data-hero-icon="stop"></span>
                   </button>
                 </div>
               </div>
@@ -200,18 +336,7 @@
                 </div>
                 <div class="logic-sidebar-resizer logic-sidebar-resizer--top" aria-hidden="true"></div>
                 <div class="logic-ruler" style="--logic-columns:10;--logic-playhead:0.25;">
-                  <div class="logic-ruler__grid">
-                    <div class="logic-ruler__cell"><span class="logic-ruler__label">1</span></div>
-                    <div class="logic-ruler__cell"></div>
-                    <div class="logic-ruler__cell"><span class="logic-ruler__label">3</span></div>
-                    <div class="logic-ruler__cell"></div>
-                    <div class="logic-ruler__cell"><span class="logic-ruler__label">5</span></div>
-                    <div class="logic-ruler__cell"></div>
-                    <div class="logic-ruler__cell"><span class="logic-ruler__label">7</span></div>
-                    <div class="logic-ruler__cell"></div>
-                    <div class="logic-ruler__cell"><span class="logic-ruler__label">9</span></div>
-                    <div class="logic-ruler__cell"></div>
-                  </div>
+                  <div class="logic-ruler__grid" data-shared-ruler data-columns="10"></div>
                 </div>
               </div>
               <div class="logic-arrange__body">
@@ -234,7 +359,7 @@
                 <div class="logic-track-lanes logic-playground-track-lanes" style="--logic-columns:10;--logic-playhead:0.25;">
                   <div class="logic-track-lane logic-track-lane--session">
                     <div class="logic-track-lane__grid">
-                      <div class="logic-playground-empty-canvas" style="grid-column:1 / -1;"></div>
+                      <div class="logic-playground-empty-canvas" data-shared-empty-canvas style="grid-column:1 / -1;"></div>
                     </div>
                   </div>
                 </div>
@@ -244,6 +369,8 @@
         </div>
       </section>
     </main>
+    <script src="/hero-icons.js"></script>
+    <script src="/editor-layout.js"></script>
     <script src="/playground.js"></script>
   </body>
 </html>

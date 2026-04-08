@@ -1,14 +1,30 @@
 (function () {
-  const MIN_SIDEBAR_WIDTH = 180;
+  const MIN_SIDEBAR_WIDTH = 260;
   const MAX_SIDEBAR_WIDTH = 520;
-  const SIDEBAR_STORAGE_KEY = "recorder.session.sidebarWidth";
+  const DEFAULT_SIDEBAR_WIDTH = 320;
+  const SIDEBAR_STORAGE_KEY = "recorder.session.sidebarWidth.v2";
+  const MIN_TIMELINE_ZOOM = 1;
+  const MAX_TIMELINE_ZOOM = 8;
+  const DEFAULT_TIMELINE_ZOOM = 1;
+  const TIMELINE_ZOOM_STORAGE_KEY = "recorder.session.timelineZoom.v1";
+  const TIMELINE_ZOOM_WHEEL_SENSITIVITY = 0.0015;
   const DEFAULT_TITLE = "New Recording";
   const DEFAULT_STORAGE_TARGET = "server_local";
   const DEFAULT_TIMELINE_SECONDS = 5 * 60;
   const POLL_INTERVAL_MS = 1000;
   const MAX_RENDER_WAVEFORM_BINS = 96;
   const MAX_LIVE_WAVEFORM_BINS = 160;
+  const DBFS_METER_FLOOR = -72;
+  const DBFS_METER_LOW = -36;
+  const DBFS_METER_NOMINAL = -18;
+  const DBFS_METER_HOT = -9;
+  const DBFS_METER_NEAR_CLIP = -3;
+  const DBFS_WAVEFORM_FLOOR = -66;
+  const DBFS_WAVEFORM_CEILING = -3;
+  const MIN_LINEAR_DBFS = 0.000001;
   const CLIP_THRESHOLD_DBFS = -0.5;
+  const IDLE_PLAYHEAD_DEFAULT_RATIO = 0.08;
+  const PLAYHEAD_LEFT_PADDING_PX = 20;
 
   const state = {
     devices: [],
@@ -41,6 +57,9 @@
     websocket: null,
     reconnectTimer: null,
     disposed: false,
+    monitorConfigKey: "",
+    timelineZoom: DEFAULT_TIMELINE_ZOOM,
+    playheadOverrideRatio: null,
     autoDownloadedSessionId: null,
     autoDownloadRequestedSessionId: null
   };
@@ -50,9 +69,12 @@
     windowbar: document.getElementById("logic-windowbar"),
     modalRoot: document.getElementById("logic-modal-root"),
     arrangeCorner: document.getElementById("logic-arrange-corner"),
+    timelineScroll: document.getElementById("logic-timeline-scroll"),
+    timelineContent: document.getElementById("logic-timeline-content"),
     ruler: document.getElementById("logic-ruler"),
     trackHeaders: document.getElementById("logic-track-headers"),
     trackLanes: document.getElementById("logic-track-lanes"),
+    playhead: document.getElementById("logic-playhead"),
     preview: document.getElementById("logic-preview")
   };
 
@@ -68,13 +90,23 @@
     return state.recorder.sessionId || state.manifest?.id || null;
   }
 
-  function getTrackScrollTop() {
-    return elements.trackLanes.scrollTop || elements.trackHeaders.scrollTop || 0;
+  function getTrackScrollState() {
+    return {
+      top: elements.timelineScroll?.scrollTop || elements.trackHeaders.scrollTop || 0,
+      left: elements.timelineScroll?.scrollLeft || 0
+    };
   }
 
-  function restoreTrackScroll(scrollTop) {
-    elements.trackHeaders.scrollTop = scrollTop;
-    elements.trackLanes.scrollTop = scrollTop;
+  function restoreTrackScroll(scrollState) {
+    const top = Number(scrollState?.top) || 0;
+    const left = Number(scrollState?.left) || 0;
+
+    elements.trackHeaders.scrollTop = top;
+
+    if (elements.timelineScroll) {
+      elements.timelineScroll.scrollTop = top;
+      elements.timelineScroll.scrollLeft = left;
+    }
   }
 
   function clone(value) {
@@ -96,6 +128,101 @@
 
   function clamp01(value) {
     return Math.max(0, Math.min(1, Number(value) || 0));
+  }
+
+  function normalizeTimelineZoom(value) {
+    const parsed = Number(value);
+
+    if (!Number.isFinite(parsed)) {
+      return DEFAULT_TIMELINE_ZOOM;
+    }
+
+    return Math.max(MIN_TIMELINE_ZOOM, Math.min(MAX_TIMELINE_ZOOM, parsed));
+  }
+
+  function persistTimelineZoom(zoom) {
+    try {
+      window.localStorage.setItem(
+        TIMELINE_ZOOM_STORAGE_KEY,
+        String(Number(zoom).toFixed(3))
+      );
+    } catch (error) {
+      void error;
+    }
+  }
+
+  function readStoredTimelineZoom() {
+    try {
+      const raw = window.localStorage.getItem(TIMELINE_ZOOM_STORAGE_KEY);
+
+      if (!raw) {
+        return DEFAULT_TIMELINE_ZOOM;
+      }
+
+      return normalizeTimelineZoom(Number.parseFloat(raw));
+    } catch (error) {
+      void error;
+      return DEFAULT_TIMELINE_ZOOM;
+    }
+  }
+
+  function applyTimelineZoom(nextZoom, options) {
+    const config = options || {};
+    const previousZoom = normalizeTimelineZoom(state.timelineZoom);
+    const normalizedZoom = normalizeTimelineZoom(nextZoom);
+    const sourceElement = config.sourceElement instanceof Element ? config.sourceElement : elements.timelineScroll;
+    const sourceRect = sourceElement?.getBoundingClientRect?.();
+    const anchorX = Number.isFinite(config.anchorX)
+      ? Number(config.anchorX)
+      : (sourceRect ? sourceRect.width / 2 : elements.timelineScroll?.clientWidth || 0);
+    const ratio = normalizedZoom / previousZoom;
+    const currentScrollLeft = elements.timelineScroll?.scrollLeft || 0;
+    const virtualAnchorX = currentScrollLeft + Math.max(0, anchorX);
+
+    state.timelineZoom = normalizedZoom;
+    elements.root?.style.setProperty("--logic-time-zoom", normalizedZoom.toFixed(3));
+
+    if (ratio !== 1 && !config.skipScrollAdjust) {
+      const nextScrollLeft = Math.max(0, (virtualAnchorX * ratio) - Math.max(0, anchorX));
+
+      if (elements.timelineScroll) {
+        elements.timelineScroll.scrollLeft = nextScrollLeft;
+      }
+    }
+
+    if (!config.skipPersist) {
+      persistTimelineZoom(normalizedZoom);
+    }
+  }
+
+  function remapRange(value, inMin, inMax, outMin, outMax) {
+    if (inMax === inMin) {
+      return outMax;
+    }
+
+    const ratio = clamp01((value - inMin) / (inMax - inMin));
+
+    return outMin + ((outMax - outMin) * ratio);
+  }
+
+  function linearToDbfs(linear) {
+    return 20 * Math.log10(Math.max(MIN_LINEAR_DBFS, Number(linear) || 0));
+  }
+
+  function normalizeDbfs(dbfs, floor, ceiling) {
+    if (!Number.isFinite(dbfs)) {
+      return 0;
+    }
+
+    return clamp01((dbfs - floor) / (ceiling - floor));
+  }
+
+  function formatDbfs(dbfs) {
+    if (!Number.isFinite(dbfs) || dbfs <= DBFS_METER_FLOOR) {
+      return "-inf dBFS";
+    }
+
+    return dbfs.toFixed(1) + " dBFS";
   }
 
   function downsampleWaveformPeaks(peaks, targetBins) {
@@ -136,7 +263,7 @@
       return merged;
     }
 
-    return merged.slice(merged.length - maxBins);
+    return downsampleWaveformPeaks(merged, maxBins);
   }
 
   function getCurrentPathSessionId() {
@@ -503,19 +630,6 @@
     return getDisplayManifest() || buildViewFromDraft(ensureDraftState());
   }
 
-  function formatTimeLabel(totalSeconds) {
-    const wholeSeconds = Math.max(0, Math.floor(totalSeconds));
-    const hours = Math.floor(wholeSeconds / 3600);
-    const minutes = Math.floor((wholeSeconds % 3600) / 60);
-    const seconds = wholeSeconds % 60;
-
-    if (hours > 0) {
-      return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
-    }
-
-    return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
-  }
-
   function formatElapsedClock(totalSeconds) {
     const wholeSeconds = Math.max(0, Math.floor(totalSeconds || 0));
     const hours = Math.floor(wholeSeconds / 3600);
@@ -568,13 +682,71 @@
       return track.lastPeakDbfs;
     }
 
-    return -60;
+    return DBFS_METER_FLOOR;
   }
 
   function dbfsToMeterLevel(dbfs) {
-    const normalized = clamp01(((Number.isFinite(dbfs) ? dbfs : -60) + 60) / 60);
+    const value = Number.isFinite(dbfs) ? dbfs : DBFS_METER_FLOOR;
 
-    return Number(Math.pow(normalized, 1.45).toFixed(4));
+    if (value <= DBFS_METER_FLOOR) {
+      return 0;
+    }
+
+    if (value <= DBFS_METER_LOW) {
+      return Number(remapRange(value, DBFS_METER_FLOOR, DBFS_METER_LOW, 0.02, 0.32).toFixed(4));
+    }
+
+    if (value <= DBFS_METER_NOMINAL) {
+      return Number(remapRange(value, DBFS_METER_LOW, DBFS_METER_NOMINAL, 0.32, 0.62).toFixed(4));
+    }
+
+    if (value <= DBFS_METER_HOT) {
+      return Number(remapRange(value, DBFS_METER_NOMINAL, DBFS_METER_HOT, 0.62, 0.82).toFixed(4));
+    }
+
+    if (value <= DBFS_METER_NEAR_CLIP) {
+      return Number(remapRange(value, DBFS_METER_HOT, DBFS_METER_NEAR_CLIP, 0.82, 0.94).toFixed(4));
+    }
+
+    return Number(remapRange(value, DBFS_METER_NEAR_CLIP, 0, 0.94, 1).toFixed(4));
+  }
+
+  function getMeterGradient(track) {
+    const dbfs = Number.isFinite(track?.peakDbfs) ? track.peakDbfs : DBFS_METER_FLOOR;
+
+    if (track?.isClipped) {
+      return {
+        start: "#ef4444",
+        end: "#dc2626"
+      };
+    }
+
+    if (dbfs >= DBFS_METER_HOT) {
+      return {
+        start: "#f59e0b",
+        end: "#f97316"
+      };
+    }
+
+    if (dbfs >= DBFS_METER_NOMINAL) {
+      return {
+        start: "#84cc16",
+        end: "#eab308"
+      };
+    }
+
+    return {
+      start: "#22c55e",
+      end: "#16a34a"
+    };
+  }
+
+  function linearPeakToWaveformLevel(peakLinear) {
+    const dbfs = linearToDbfs(clamp01(peakLinear));
+    const normalized = normalizeDbfs(dbfs, DBFS_WAVEFORM_FLOOR, DBFS_WAVEFORM_CEILING);
+    const curved = Math.pow(normalized, 0.72);
+
+    return Number(Math.max(0.01, curved).toFixed(4));
   }
 
   function isClippedPeak(dbfs) {
@@ -679,6 +851,9 @@
 
   function buildTimeline(view) {
     const sampleRate = view?.format?.sampleRate || 48000;
+    const recordingView = state.recorder.state === "recording"
+      && Boolean(state.recorder.sessionId)
+      && state.recorder.sessionId === view?.id;
     const activeDurationFrames = state.recorder.sessionId && view?.id === state.recorder.sessionId
       ? Math.max(
         state.liveDurationFrames || 0,
@@ -687,23 +862,16 @@
       : 0;
     const manifestDurationFrames = view?.durationFrames || 0;
     const effectiveDurationFrames = Math.max(manifestDurationFrames, activeDurationFrames);
-    const totalDurationSeconds = Math.max(
-      DEFAULT_TIMELINE_SECONDS,
-      Math.ceil(effectiveDurationFrames / sampleRate)
-    );
-    const majorStepSeconds = totalDurationSeconds > 30 * 60 ? 5 * 60 : 60;
-    const majorLabels = [];
+    const columns = 10;
+    const barMarks = ["1", "3", "5", "7", "9"];
+    const defaultTimelineFrames = Math.max(sampleRate, DEFAULT_TIMELINE_SECONDS * sampleRate);
+    const totalFrames = Math.max(defaultTimelineFrames, effectiveDurationFrames + (sampleRate * 30));
 
-    for (let seconds = 0; seconds <= totalDurationSeconds; seconds += majorStepSeconds) {
-      majorLabels.push(formatTimeLabel(seconds));
+    function frameToRatio(frame) {
+      const normalized = Math.max(0, Math.min(totalFrames, frame));
+
+      return clamp01(normalized / totalFrames);
     }
-
-    if (majorLabels[majorLabels.length - 1] !== formatTimeLabel(totalDurationSeconds)) {
-      majorLabels.push(formatTimeLabel(totalDurationSeconds));
-    }
-
-    const columns = Math.max(12, majorLabels.length * 2);
-    const totalFrames = Math.max(sampleRate, totalDurationSeconds * sampleRate);
 
     function frameToColumn(frame) {
       const normalized = Math.max(0, Math.min(totalFrames, frame));
@@ -711,7 +879,29 @@
       return Math.max(1, Math.min(columns, Math.floor((normalized / totalFrames) * columns) + 1));
     }
 
-    const tracks = (Array.isArray(view?.tracks) ? view.tracks : []).map(function (track, index) {
+    const sourceTracks = Array.isArray(view?.tracks) ? view.tracks.slice() : [];
+
+    if (recordingView) {
+      Array.from(state.livePeaks.keys()).forEach(function (usbChannel) {
+        const hasTrack = sourceTracks.some(function (track) {
+          return Number(track?.usbChannel) === Number(usbChannel);
+        });
+
+        if (hasTrack) {
+          return;
+        }
+
+        sourceTracks.push({
+          usbChannel: Number(usbChannel),
+          label: "USB " + String(usbChannel).padStart(2, "0"),
+          armed: true,
+          lastPeakDbfs: state.livePeaks.get(usbChannel),
+          segments: []
+        });
+      });
+    }
+
+    const tracks = sourceTracks.map(function (track, index) {
       const color = index % 3 === 0 ? "indigo" : (index % 3 === 1 ? "blue" : "cyan");
       const peakDbfs = getTrackPeakDbfs(track);
       const liveWaveformPeaks = downsampleWaveformPeaks(
@@ -719,27 +909,41 @@
         MAX_RENDER_WAVEFORM_BINS
       );
       const regions = (Array.isArray(track.segments) ? track.segments : []).map(function (segment) {
+        const startRatio = frameToRatio(segment.startFrame);
+        const endRatio = Math.max(
+          startRatio + (1 / totalFrames),
+          frameToRatio(segment.endFrame + 1)
+        );
         const start = frameToColumn(segment.startFrame);
         const end = Math.max(start + 1, frameToColumn(segment.endFrame + 1));
 
         return {
           start,
           length: Math.max(1, Math.min(columns - start + 1, end - start)),
+          startPercent: Number((startRatio * 100).toFixed(4)),
+          widthPercent: Number((Math.max(0, endRatio - startRatio) * 100).toFixed(4)),
           live: false,
           waveformPeaks: downsampleWaveformPeaks(segment.waveformPeaks, MAX_RENDER_WAVEFORM_BINS)
         };
       });
 
-      if (state.recorder.state === "recording" && state.recorder.sessionId === view?.id && track.armed) {
+      if (recordingView && track.armed) {
         const lastSegment = track.segments?.[track.segments.length - 1] || null;
         const liveStartFrame = lastSegment ? lastSegment.endFrame + 1 : 0;
         const liveEndFrame = Math.max(liveStartFrame + 1, effectiveDurationFrames);
+        const liveStartRatio = frameToRatio(liveStartFrame);
+        const liveEndRatio = Math.max(
+          liveStartRatio + (1 / totalFrames),
+          frameToRatio(liveEndFrame)
+        );
         const liveStart = frameToColumn(liveStartFrame);
         const liveEnd = Math.max(liveStart + 1, frameToColumn(liveEndFrame));
 
         regions.push({
           start: liveStart,
           length: Math.max(1, Math.min(columns - liveStart + 1, liveEnd - liveStart)),
+          startPercent: Number((liveStartRatio * 100).toFixed(4)),
+          widthPercent: Number((Math.max(0, liveEndRatio - liveStartRatio) * 100).toFixed(4)),
           live: true,
           waveformPeaks: liveWaveformPeaks
         });
@@ -760,7 +964,7 @@
 
     return {
       columns,
-      marks: majorLabels,
+      marks: barMarks,
       playhead: Number(((effectiveDurationFrames / totalFrames) * columns).toFixed(3)),
       tracks
     };
@@ -789,6 +993,9 @@
     const draftDevice = draft ? getDeviceById(draft.deviceId) : null;
     const draftProfile = draft ? getProfileById(draft.profileId) : null;
 
+    const canRequestStop = !state.pendingAction
+      && (state.recorder.state === "recording" || state.recorder.state === "stopping" || view?.status === "recording" || view?.status === "stopping");
+
     return {
       view,
       editable,
@@ -797,8 +1004,97 @@
       draftProfile,
       draftRates: draft ? getSupportedSampleRates(draftDevice, draftProfile) : [],
       canRecord: !state.pendingAction && state.recorder.state !== "recording" && state.recorder.state !== "stopping",
-      canStop: !state.pendingAction && state.recorder.state === "recording" && Boolean(state.recorder.sessionId)
+      canStop: canRequestStop
     };
+  }
+
+  function normalizeMonitorTrackChannels(tracks) {
+    const seen = new Set();
+    const channels = [];
+
+    (Array.isArray(tracks) ? tracks : []).forEach(function (track) {
+      const channel = Number.parseInt(track?.usbChannel, 10);
+
+      if (!Number.isFinite(channel) || channel < 1 || seen.has(channel)) {
+        return;
+      }
+
+      seen.add(channel);
+      channels.push(channel);
+    });
+
+    return channels;
+  }
+
+  function buildMonitorConfigPayload(context) {
+    const editableTracks = context.editable ? context.draft?.tracks : null;
+    const viewTracks = context.view?.tracks;
+    const trackChannels = normalizeMonitorTrackChannels(editableTracks || viewTracks || []);
+    const deviceId = context.editable
+      ? context.draft?.deviceId
+      : context.view?.device?.id;
+    const sampleRate = context.editable
+      ? context.draft?.sampleRate
+      : context.view?.format?.sampleRate;
+
+    if (!deviceId || !Number.isFinite(sampleRate) || !trackChannels.length) {
+      return {
+        enabled: false
+      };
+    }
+
+    return {
+      enabled: true,
+      deviceId,
+      sampleRate,
+      trackChannels
+    };
+  }
+
+  function pruneLiveMeterChannels(allowedChannels) {
+    const allow = new Set(Array.isArray(allowedChannels) ? allowedChannels : []);
+
+    Array.from(state.livePeaks.keys()).forEach(function (channel) {
+      if (!allow.has(channel)) {
+        state.livePeaks.delete(channel);
+      }
+    });
+  }
+
+  async function syncMonitorConfig(context) {
+    if (state.disposed) {
+      return;
+    }
+
+    const payload = buildMonitorConfigPayload(context);
+    const signature = JSON.stringify(payload);
+
+    if (signature === state.monitorConfigKey) {
+      return;
+    }
+
+    state.monitorConfigKey = signature;
+
+    if (payload.enabled) {
+      pruneLiveMeterChannels(payload.trackChannels);
+
+      if (state.recorder.state !== "recording") {
+        state.liveWaveforms.clear();
+        state.liveDurationFrames = 0;
+      }
+    } else {
+      resetLiveAudioState();
+    }
+
+    try {
+      await apiRequest("/api/v1/monitor/config", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+    } catch (error) {
+      state.monitorConfigKey = "";
+      void error;
+    }
   }
 
   function resolveDraftState() {
@@ -811,6 +1107,7 @@
     state.livePeaks.clear();
     state.liveWaveforms.clear();
     state.liveDurationFrames = 0;
+    state.playheadOverrideRatio = null;
   }
 
   async function apiRequest(url, options) {
@@ -969,6 +1266,38 @@
     ].join("");
   }
 
+  function renderHeroIcon(name) {
+    const render = window.logicHeroIcons?.render;
+
+    if (typeof render !== "function") {
+      return "";
+    }
+
+    return render(name, "hero-icon");
+  }
+
+  function renderSharedRulerGrid(columns) {
+    const render = window.logicEditorLayout?.renderRulerGrid;
+
+    if (typeof render === "function") {
+      return render(columns);
+    }
+
+    return '<div class="logic-ruler__grid">' + Array.from({ length: columns }, function () {
+      return '<div class="logic-ruler__cell"></div>';
+    }).join("") + "</div>";
+  }
+
+  function renderSharedEmptyLaneCanvas(className) {
+    const render = window.logicEditorLayout?.renderEmptyLaneCanvas;
+
+    if (typeof render === "function") {
+      return render(className);
+    }
+
+    return '<div class="' + escapeHtml(className || "logic-playground-empty-canvas") + '" style="grid-column:1 / -1;"></div>';
+  }
+
   function renderWindowBar(context) {
     const status = getSessionStatusDescriptor(context);
     const elapsed = formatElapsedClock(getSessionElapsedSeconds(context));
@@ -977,16 +1306,16 @@
       "logic-playground-minibar__action--record",
       status.tone === "recording" ? "is-recording" : ""
     ].filter(Boolean).join(" ");
+    const settingsIcon = renderHeroIcon("settings");
+    const recordIcon = renderHeroIcon("record");
+    const stopIcon = renderHeroIcon("stop");
 
     elements.windowbar.innerHTML = [
       '<div class="logic-playground-minibar-stack logic-playground-minibar-stack--full">',
       '  <section class="logic-playground-minibar logic-playground-minibar--clock" aria-label="Session top app bar">',
       '    <div class="logic-playground-minibar__left">',
       '      <button class="logic-playground-minibar__action logic-playground-minibar__action--settings" type="button" data-open-settings title="Settings" aria-label="Settings">',
-      '        <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">',
-      '          <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />',
-      '          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />',
-      "        </svg>",
+      "        " + settingsIcon,
       "      </button>",
       "    </div>",
       '    <div class="logic-playground-minibar__center">',
@@ -1000,14 +1329,10 @@
       '    <div class="logic-playground-minibar__right">',
       '      <div class="logic-playground-minibar__transport">',
       '        <button class="' + recordClassName + '" type="button" data-transport-action="record" title="Record"' + (context.canRecord ? "" : " disabled") + '>',
-      '          <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">',
-      '            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />',
-      "          </svg>",
+      "          " + recordIcon,
       "        </button>",
       '        <button class="logic-playground-minibar__action logic-playground-minibar__action--stop" type="button" data-transport-action="stop" title="Stop"' + (context.canStop ? "" : " disabled") + '>',
-      '          <svg class="hero-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">',
-      '            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />',
-      "          </svg>",
+      "          " + stopIcon,
       "        </button>",
       "      </div>",
       "    </div>",
@@ -1099,23 +1424,54 @@
 
   function renderRuler(timeline) {
     elements.ruler.style.setProperty("--logic-columns", String(timeline.columns));
-    elements.ruler.style.setProperty("--logic-playhead", String(timeline.playhead || 0));
-    elements.ruler.innerHTML = '<div class="logic-ruler__grid">' + Array.from({ length: timeline.columns }, function (_, index) {
-      const labelIndex = Math.floor(index / 2);
-      const label = index % 2 === 0 && labelIndex < timeline.marks.length ? timeline.marks[labelIndex] : "";
+    elements.timelineContent?.style.setProperty("--logic-columns", String(timeline.columns));
+    elements.ruler.innerHTML = renderSharedRulerGrid(timeline.columns);
+  }
 
-      return [
-        '<div class="logic-ruler__cell">',
-        label ? '  <span class="logic-ruler__label">' + escapeHtml(label) + "</span>" : "",
-        "</div>"
-      ].join("");
-    }).join("") + "</div>";
+  function getComputedPlayheadRatio(timeline) {
+    const columns = Math.max(1, Number(timeline?.columns) || 1);
+    const timelineRatio = clamp01((Number(timeline?.playhead) || 0) / columns);
+    const recorderState = state.recorder.state;
+    const followLive = recorderState === "recording" || recorderState === "stopping";
+
+    if (followLive) {
+      state.playheadOverrideRatio = timelineRatio;
+      return timelineRatio;
+    }
+
+    if (Number.isFinite(state.playheadOverrideRatio)) {
+      return clamp01(state.playheadOverrideRatio);
+    }
+
+    if (timelineRatio <= 0) {
+      return IDLE_PLAYHEAD_DEFAULT_RATIO;
+    }
+
+    return Math.max(IDLE_PLAYHEAD_DEFAULT_RATIO, timelineRatio);
+  }
+
+  function renderPlayhead(timeline) {
+    if (!elements.playhead || !elements.timelineContent) {
+      return;
+    }
+
+    const ratio = getComputedPlayheadRatio(timeline);
+    const contentWidth = Math.max(1, elements.timelineContent.scrollWidth);
+    const usableWidth = Math.max(1, contentWidth - PLAYHEAD_LEFT_PADDING_PX);
+    const leftPx = PLAYHEAD_LEFT_PADDING_PX + (ratio * usableWidth);
+    const snappedLeftPx = Math.round(leftPx * 2) / 2;
+
+    elements.timelineContent.style.setProperty("--logic-playhead-ratio", ratio.toFixed(6));
+    elements.timelineContent.style.setProperty("--logic-playhead-left-padding-px", String(PLAYHEAD_LEFT_PADDING_PX) + "px");
+    elements.playhead.style.left = snappedLeftPx.toFixed(1) + "px";
   }
 
   function renderTrackHeaders(timeline, context) {
     elements.trackHeaders.innerHTML = timeline.tracks.map(function (track, index) {
       const selectedClassName = index === state.selectedTrackIndex ? " is-selected" : "";
       const sliderValue = clamp01(track.meterLevel);
+      const sliderGradient = getMeterGradient(track);
+      const peakDbfsLabel = formatDbfs(track.peakDbfs);
 
       return [
         '<article class="logic-track-header logic-track-header--session' + selectedClassName + '" data-track-row="' + String(index) + '">',
@@ -1131,7 +1487,7 @@
           ].join("")
           : '<div class="logic-track-name__display logic-track-name__display--session logic-playground-track-strip__name logic-track-field-static">' + escapeHtml(track.label) + "</div>",
         "    </div>",
-        '    <div class="logic-playground-strip-slider logic-playground-strip-slider--wide logic-playground-strip-slider--readonly" style="--logic-slider-value:' + sliderValue.toFixed(3) + ';" aria-hidden="true">',
+        '    <div class="logic-playground-strip-slider logic-playground-strip-slider--wide logic-playground-strip-slider--readonly" style="--logic-slider-value:' + sliderValue.toFixed(3) + ";--logic-meter-fill-start:" + escapeHtml(sliderGradient.start) + ";--logic-meter-fill-end:" + escapeHtml(sliderGradient.end) + ';" title="Peak ' + escapeHtml(peakDbfsLabel) + '" aria-label="Peak ' + escapeHtml(peakDbfsLabel) + '">',
         '      <span class="logic-playground-strip-slider__track"></span>',
         "    </div>",
         "  </div>",
@@ -1141,42 +1497,79 @@
   }
 
   function buildRegionMarkup(track, region) {
-    const intensity = Math.max(0.16, Math.min(1, (60 + track.peakDbfs) / 60));
+    const intensity = Math.max(0.16, normalizeDbfs(track.peakDbfs, DBFS_METER_FLOOR, 0));
+    const startPercent = clamp01((region.startPercent || 0) / 100) * 100;
+    const widthPercent = Math.max(
+      region.live ? 0.35 : 0.12,
+      clamp01((region.widthPercent || 0) / 100) * 100
+    );
 
     return [
-      '<article class="logic-region logic-region--display logic-region--' + escapeHtml(track.color) + (region.live ? " is-live" : "") + (track.isSelected ? " is-selected" : "") + '" style="grid-column:' + String(region.start) + " / span " + String(region.length) + ";--logic-live-intensity:" + intensity.toFixed(2) + ';">',
+      '<article class="logic-region logic-region--display logic-region--timeline logic-region--' + escapeHtml(track.color) + (region.live ? " is-live" : "") + (track.isSelected ? " is-selected" : "") + '" style="--logic-region-start:' + startPercent.toFixed(4) + "%;--logic-region-width:" + widthPercent.toFixed(4) + "%;--logic-live-intensity:" + intensity.toFixed(2) + ';">',
       buildWaveformMarkup(region.waveformPeaks, "logic-region__wave"),
       "</article>"
     ].join("");
   }
 
   function buildAudioDisplay(track) {
-    const intensity = Math.max(0.14, Math.min(1, (60 + track.peakDbfs) / 60));
+    const liveBins = downsampleWaveformPeaks(track.liveWaveformPeaks, MAX_RENDER_WAVEFORM_BINS);
+    const intensity = Math.max(0.14, normalizeDbfs(track.peakDbfs, DBFS_METER_FLOOR, 0));
     const classNames = [
       "logic-audio-display",
       "logic-audio-display--empty",
+      liveBins.length ? "has-waveform" : "is-silent",
       track.armed ? "is-armed" : "is-off",
       track.isSelected ? "is-selected" : ""
     ].join(" ");
 
     return [
       '<div class="' + classNames + '" style="grid-column:1 / -1;--logic-live-intensity:' + intensity.toFixed(2) + ';">',
-      buildWaveformMarkup(track.liveWaveformPeaks, "logic-audio-display__wave"),
+      buildWaveformMarkup(liveBins.length ? liveBins : [0, 0], "logic-audio-display__wave"),
       "</div>"
     ].join("");
   }
 
   function buildWaveformMarkup(peaks, className) {
     const bins = downsampleWaveformPeaks(peaks, MAX_RENDER_WAVEFORM_BINS);
-    const normalizedBins = bins.length ? bins : new Array(32).fill(0.05);
+    const normalizedBins = bins.length ? bins : [0, 0];
+    const path = buildWaveformPath(normalizedBins);
 
     return [
-      '<div class="' + className + '" aria-hidden="true">',
-      normalizedBins.map(function (peak) {
-        return '<span class="logic-waveform__bar" style="--logic-wave-height:' + clamp01(peak).toFixed(4) + ';"></span>';
-      }).join(""),
-      "</div>"
+      '<svg class="' + className + ' logic-waveform__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">',
+      '  <path class="logic-waveform__shape" d="' + path + '"></path>',
+      "</svg>"
     ].join("");
+  }
+
+  function buildWaveformPath(peaks) {
+    if (!Array.isArray(peaks) || !peaks.length) {
+      return "M0 50 L100 50 L100 51 L0 51 Z";
+    }
+
+    const safeBins = peaks.map(function (value) {
+      return linearPeakToWaveformLevel(value);
+    });
+    const count = safeBins.length;
+    const span = Math.max(1, count - 1);
+    const amplitude = 45;
+    const topPoints = safeBins.map(function (peak, index) {
+      const x = (index / span) * 100;
+      const y = 50 - (peak * amplitude);
+
+      return x.toFixed(3) + " " + y.toFixed(3);
+    });
+    const bottomPoints = safeBins
+      .slice()
+      .reverse()
+      .map(function (peak, reverseIndex) {
+        const index = count - 1 - reverseIndex;
+        const x = (index / span) * 100;
+        const y = 50 + (peak * amplitude);
+
+        return x.toFixed(3) + " " + y.toFixed(3);
+      });
+
+    return "M " + topPoints.join(" L ") + " L " + bottomPoints.join(" L ") + " Z";
   }
 
   function getWaveformPlaylistFactory() {
@@ -1414,15 +1807,13 @@
 
   function renderTrackLanes(timeline) {
     elements.trackLanes.classList.toggle("is-empty", !timeline.tracks.length);
-    elements.trackLanes.classList.add("logic-playground-track-lanes");
     elements.trackLanes.style.setProperty("--logic-columns", String(timeline.columns));
-    elements.trackLanes.style.setProperty("--logic-playhead", String(timeline.playhead || 0));
     elements.trackLanes.innerHTML = timeline.tracks.map(function (track, index) {
       const content = track.regions.length
         ? track.regions.map(function (region) {
           return buildRegionMarkup(track, region);
         }).join("")
-        : buildAudioDisplay(track);
+        : "";
 
       return [
         '<div class="logic-track-lane logic-track-lane--session' + (index === state.selectedTrackIndex ? " is-selected" : "") + '" data-track-row="' + String(index) + '">',
@@ -1440,7 +1831,7 @@
   }
 
   function renderApp() {
-    const previousScrollTop = getTrackScrollTop();
+    const previousScroll = getTrackScrollState();
     const context = getRenderContext();
     const timeline = buildTimeline(context.view);
     syncSelectedTrackIndex(timeline.tracks.length);
@@ -1458,8 +1849,11 @@
     renderRuler(timeline);
     renderTrackHeaders(timeline, context);
     renderTrackLanes(timeline);
+    renderPlayhead(timeline);
     renderPreviewPanel(context);
-    restoreTrackScroll(previousScrollTop);
+    restoreTrackScroll(previousScroll);
+    syncMonitorConfig(context).catch(function () {
+    });
   }
 
   function remapTrackInputs(tracks, targetIndex, nextUsbChannel) {
@@ -1733,6 +2127,76 @@
     });
   }
 
+  function bindPlayheadInteractions() {
+    if (!elements.timelineScroll || !elements.timelineContent || !elements.playhead) {
+      return;
+    }
+
+    let dragPointerId = null;
+
+    function setFromClientX(clientX) {
+      const contentRect = elements.timelineContent.getBoundingClientRect();
+      const width = Math.max(1, elements.timelineContent.scrollWidth);
+      const usableWidth = Math.max(1, width - PLAYHEAD_LEFT_PADDING_PX);
+      const localX = (clientX - contentRect.left) + elements.timelineScroll.scrollLeft;
+      const clampedX = Math.max(PLAYHEAD_LEFT_PADDING_PX, Math.min(width, localX));
+      const ratio = clamp01((clampedX - PLAYHEAD_LEFT_PADDING_PX) / usableWidth);
+      const snappedX = Math.round(clampedX * 2) / 2;
+
+      state.playheadOverrideRatio = ratio;
+      elements.timelineContent.style.setProperty("--logic-playhead-ratio", ratio.toFixed(6));
+      elements.timelineContent.style.setProperty("--logic-playhead-left-padding-px", String(PLAYHEAD_LEFT_PADDING_PX) + "px");
+      elements.playhead.style.left = snappedX.toFixed(1) + "px";
+    }
+
+    function stopDragging() {
+      if (dragPointerId === null) {
+        return;
+      }
+
+      if (elements.playhead.hasPointerCapture?.(dragPointerId)) {
+        elements.playhead.releasePointerCapture(dragPointerId);
+      }
+
+      dragPointerId = null;
+      elements.playhead.classList.remove("is-dragging");
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    }
+
+    function onPointerMove(event) {
+      if (event.pointerId !== dragPointerId) {
+        return;
+      }
+
+      setFromClientX(event.clientX);
+    }
+
+    function onPointerUp(event) {
+      if (event.pointerId !== dragPointerId) {
+        return;
+      }
+
+      stopDragging();
+    }
+
+    elements.playhead.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0) {
+        return;
+      }
+
+      dragPointerId = event.pointerId;
+      elements.playhead.classList.add("is-dragging");
+      elements.playhead.setPointerCapture?.(event.pointerId);
+      setFromClientX(event.clientX);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("pointercancel", onPointerUp);
+      event.preventDefault();
+    });
+  }
+
   function bindSettingsInteractions() {
     elements.windowbar.addEventListener("click", function (event) {
       const target = event.target;
@@ -1806,7 +2270,7 @@
         return cssWidth;
       }
 
-      return 320;
+      return DEFAULT_SIDEBAR_WIDTH;
     }
 
     function updateAria(width) {
@@ -1860,10 +2324,10 @@
 
     const savedWidth = Number.parseInt(window.localStorage.getItem(SIDEBAR_STORAGE_KEY) || "", 10);
 
-    if (Number.isFinite(savedWidth)) {
+    if (Number.isFinite(savedWidth) && savedWidth >= MIN_SIDEBAR_WIDTH && savedWidth <= MAX_SIDEBAR_WIDTH) {
       setWidth(savedWidth);
     } else {
-      updateAria(readWidth());
+      setWidth(DEFAULT_SIDEBAR_WIDTH);
     }
 
     handles.forEach(function (handle) {
@@ -1902,37 +2366,87 @@
   }
 
   function bindScrollSync() {
-    let syncing = false;
-
-    function sync(source, target) {
-      if (syncing) {
-        return;
-      }
-
-      syncing = true;
-      target.scrollTop = source.scrollTop;
-      window.requestAnimationFrame(function () {
-        syncing = false;
-      });
+    if (!elements.timelineScroll) {
+      return;
     }
 
-    elements.trackLanes.addEventListener("scroll", function () {
-      sync(elements.trackLanes, elements.trackHeaders);
-    });
+    function zoomByWheel(event, sourceElement) {
+      if (!(event.ctrlKey || event.metaKey)) {
+        return false;
+      }
 
-    elements.trackHeaders.addEventListener("scroll", function () {
-      sync(elements.trackHeaders, elements.trackLanes);
+      const delta = Number(event.deltaY);
+
+      if (!Number.isFinite(delta) || delta === 0) {
+        return true;
+      }
+
+      const anchorRect = sourceElement.getBoundingClientRect();
+      const anchorX = event.clientX - anchorRect.left;
+      const factor = Math.exp(-delta * TIMELINE_ZOOM_WHEEL_SENSITIVITY);
+
+      applyTimelineZoom(state.timelineZoom * factor, {
+        sourceElement,
+        anchorX
+      });
+
+      event.preventDefault();
+      return true;
+    }
+
+    elements.timelineScroll.addEventListener("scroll", function () {
+      if (elements.trackHeaders) {
+        elements.trackHeaders.scrollTop = elements.timelineScroll.scrollTop;
+      }
     });
 
     elements.trackHeaders.addEventListener("wheel", function (event) {
-      if (!elements.trackLanes) {
+      elements.timelineScroll.scrollTop += event.deltaY;
+      elements.timelineScroll.scrollLeft += event.deltaX;
+      event.preventDefault();
+    }, { passive: false });
+
+    elements.timelineScroll.addEventListener("wheel", function (event) {
+      if (zoomByWheel(event, elements.timelineScroll)) {
         return;
       }
 
-      elements.trackLanes.scrollTop += event.deltaY;
-      elements.trackLanes.scrollLeft += event.deltaX;
+      if (!event.shiftKey) {
+        return;
+      }
+
+      elements.timelineScroll.scrollLeft += event.deltaY;
       event.preventDefault();
     }, { passive: false });
+
+    document.addEventListener("keydown", function (event) {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) {
+        return;
+      }
+
+      const target = event.target;
+
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
+        return;
+      }
+
+      if (event.key === "0") {
+        applyTimelineZoom(DEFAULT_TIMELINE_ZOOM);
+        event.preventDefault();
+        return;
+      }
+
+      if (event.key === "=" || event.key === "+") {
+        applyTimelineZoom(state.timelineZoom * 1.12);
+        event.preventDefault();
+        return;
+      }
+
+      if (event.key === "-" || event.key === "_") {
+        applyTimelineZoom(state.timelineZoom / 1.12);
+        event.preventDefault();
+      }
+    });
   }
 
   async function handleRecord() {
@@ -1996,23 +2510,49 @@
   }
 
   async function handleStop() {
-    if (state.pendingAction || !state.recorder.sessionId) {
+    if (state.pendingAction) {
+      return;
+    }
+
+    const targetSessionId = getActiveSessionId();
+    const canAttemptStop = state.recorder.state === "recording"
+      || state.recorder.state === "stopping"
+      || state.manifest?.status === "recording"
+      || state.manifest?.status === "stopping";
+
+    if (!canAttemptStop) {
       return;
     }
 
     state.pendingAction = "stop";
-    state.autoDownloadRequestedSessionId = getActiveSessionId();
+    state.autoDownloadRequestedSessionId = targetSessionId || null;
     renderChrome(getRenderContext());
 
     try {
-      await apiRequest("/api/v1/recorder/stop", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: getActiveSessionId()
-        })
-      });
+      try {
+        await apiRequest("/api/v1/recorder/stop", {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: targetSessionId || null
+          })
+        });
+      } catch (error) {
+        if (error?.code !== "RECORDER_NOT_PREPARED" && error?.code !== "REQUEST_FAILED") {
+          throw error;
+        }
 
-      await syncServerState(getActiveSessionId());
+        await apiRequest("/api/v1/recorder/stop", {
+          method: "POST",
+          body: JSON.stringify({})
+        });
+      }
+
+      if (targetSessionId) {
+        await syncServerState(targetSessionId);
+      } else {
+        await fetchBootstrapState();
+      }
+
       maybeAutoDownload(state.manifest);
       ensurePolling();
       renderApp();
@@ -2123,10 +2663,6 @@
     if (message.type === "recorder_state_changed") {
       state.recorder = message.recorder || state.recorder;
 
-      if (state.recorder.state !== "recording") {
-        resetLiveAudioState();
-      }
-
       ensurePolling();
 
       if (state.recorder.sessionId && state.recorder.sessionId !== state.manifest?.id) {
@@ -2138,12 +2674,19 @@
       return;
     }
 
-      if (message.type === "meter_update") {
-      if (!message.sessionId || message.sessionId !== getActiveSessionId()) {
+    if (message.type === "meter_update") {
+      const activeSessionId = getActiveSessionId();
+      const isMonitorUpdate = !message.sessionId;
+
+      if (!isMonitorUpdate && message.sessionId !== activeSessionId) {
         return;
       }
 
-      if (Number.isFinite(message.durationFrames)) {
+      if (isMonitorUpdate && (state.recorder.state === "recording" || state.recorder.state === "stopping")) {
+        return;
+      }
+
+      if (!isMonitorUpdate && Number.isFinite(message.durationFrames)) {
         state.liveDurationFrames = Math.max(state.liveDurationFrames, message.durationFrames);
 
         if (message.sampleRate) {
@@ -2160,20 +2703,23 @@
 
       (message.channels || []).forEach(function (channel) {
         state.livePeaks.set(channel.usbChannel, channel.peakDbfs);
+
+        if (isMonitorUpdate) {
+          return;
+        }
+
         state.liveWaveforms.set(
           channel.usbChannel,
           appendWaveformPeaks(
             state.liveWaveforms.get(channel.usbChannel),
-            downsampleWaveformPeaks(channel.waveformPeaks, 24),
+            downsampleWaveformPeaks(channel.waveformPeaks, 48),
             MAX_LIVE_WAVEFORM_BINS
           )
         );
       });
 
-      const scrollTop = getTrackScrollTop();
       const timeline = buildTimeline(getSessionView());
       const context = getRenderContext();
-      const currentColumns = Number.parseInt(elements.ruler.style.getPropertyValue("--logic-columns") || "", 10);
 
       syncSelectedTrackIndex(timeline.tracks.length);
       timeline.tracks = timeline.tracks.map(function (track, index) {
@@ -2183,16 +2729,23 @@
         };
       });
 
+      if (isMonitorUpdate) {
+        renderTrackHeaders(timeline, context);
+        return;
+      }
+
+      const scrollState = getTrackScrollState();
+      const currentColumns = Number.parseInt(elements.ruler.style.getPropertyValue("--logic-columns") || "", 10);
+
       if (currentColumns !== timeline.columns) {
         renderRuler(timeline);
-      } else {
-        elements.ruler.style.setProperty("--logic-playhead", String(timeline.playhead || 0));
       }
 
       renderWindowBar(context);
       renderTrackHeaders(timeline, context);
       renderTrackLanes(timeline);
-      restoreTrackScroll(scrollTop);
+      renderPlayhead(timeline);
+      restoreTrackScroll(scrollState);
       return;
     }
 
@@ -2257,12 +2810,19 @@
   }
 
   async function bootstrap() {
+    state.timelineZoom = readStoredTimelineZoom();
+    applyTimelineZoom(state.timelineZoom, {
+      skipScrollAdjust: true,
+      skipPersist: true
+    });
+
     bindTransport();
     bindDropdownChrome();
     bindTrackResizer();
     bindScrollSync();
     bindTrackHeaderInteractions();
     bindTrackLaneInteractions();
+    bindPlayheadInteractions();
     bindSettingsInteractions();
     connectWebSocket();
 

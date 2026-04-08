@@ -17,11 +17,11 @@
 
 키워드:
 
-- VS Code dark workbench
+- semantic layer mapping (`canvas` / `chrome` / `panel` / `editor field`)
 - compact editor chrome
-- muted slate surfaces
+- muted slate surfaces with depth gradient
 - white-on-dark text hierarchy
-- restrained blue accent
+- restrained indigo accent
 - dense audio workspace
 
 피해야 할 방향:
@@ -43,38 +43,68 @@
 - 텍스트는 `#cccccc` 수준의 low-contrast bright gray를 기본으로 한다.
 - 상태 전달은 색 하나보다 border, fill, text contrast까지 함께 사용한다.
 
+컴포넌트별 직접 색 지정 대신 아래의 케이스 매핑을 기준으로 스타일을 적용한다.
+
+1. `Canvas`: 페이지 바깥 배경, 전체 작업면 외곽
+2. `Chrome`: Top App Bar, transport이 포함된 상단 bar
+3. `Panel`: Timeline header, corner, track metadata strip
+4. `Editor Field`: arrange lane, grid, waveform 배경
+5. `Accent Action`: record/selected/focus 같은 인터랙션 상태
+6. `Critical State`: clip/drop/error 같은 경고성 상태
+
+`tailwind-example/03~05`에서 추가로 추출한 적용 규칙:
+
+1. Chrome/Toolbar 기본면은 `gray-800/50` 계열 반투명 레이어를 우선한다.
+2. Active item은 `gray-950/50` 계열의 더 어두운 배경으로 구분한다.
+3. 일반 interactive surface는 `white/5`, hover는 `white/10`로 한 단계만 올린다.
+4. focus/selected interaction은 `indigo-500` 계열로 통일한다.
+5. dropdown/popover는 `gray-800` + `outline white/10` 조합을 기본으로 쓴다.
+6. 구분선은 1차 `white/10`, 2차 `white/5` 강도로 밀도를 조절한다.
+7. 텍스트 위계는 `white`(primary) > `gray-300`(secondary) > `gray-400/500`(support) 순으로 둔다.
+8. 장식성 그라디언트는 기본적으로 사용하지 않는다. 정보 전달 목적(예: 값 분포)이 아닌 배경 그라디언트는 제거한다.
+
 ## 3. 토큰
 
 ## 3.1 색상
 
-### Workbench
+### Canvas (Page Layer)
 
-- `--bg-canvas`: `#1b1b1c`
-- `--bg-canvas-deep`: `#181818`
-- `--bg-panel`: `#1e1e1e`
-- `--bg-panel-strong`: `#252526`
-- `--bg-elevated`: `#2d2d30`
-- `--bg-muted`: `rgba(255, 255, 255, 0.03)`
+- `--logic-ds-canvas-start`: `#0b0d12`
+- `--logic-ds-canvas-end`: `#090b10`
 
-### Border
+### Chrome / Panel (UI Layer)
 
-- `--border-soft`: `rgba(255, 255, 255, 0.08)`
-- `--border-strong`: `rgba(255, 255, 255, 0.14)`
+- `--logic-ds-surface-chrome-start`: `#d8dade`
+- `--logic-ds-surface-chrome-end`: `#c9ccd2`
+- `--logic-ds-surface-panel-start`: `#4e525a`
+- `--logic-ds-surface-panel-end`: `#40444b`
+- `--logic-ds-editor-base`: `#2b2f36`
 
-### Text
+### Border / Grid (Structure Layer)
 
-- `--text-strong`: `#cccccc`
-- `--text-muted`: `#9da1a6`
-- `--text-inverse`: `#ffffff`
+- `--logic-ds-border-soft`: `#5f656e`
+- `--logic-ds-border-strong`: `#787e88`
+- `--logic-ds-grid`: `#525863`
 
-### Accent
+### Text (Content Layer)
 
-- `--signal-blue`: `#3794ff`
-- `--signal-blue-strong`: `#0e639c`
-- `--signal-red`: `#f14c4c`
-- `--signal-amber`: `#cca700`
-- `--signal-green`: `#89d185`
-- `--signal-cyan`: compatibility alias, 현재는 blue 계열로 취급
+- `--logic-ds-text-primary`: `#f3f5f8`
+- `--logic-ds-text-secondary`: `#d6d9e0`
+
+### State (Interaction Layer)
+
+- `--logic-ds-accent-start`: `#3b82f6`
+- `--logic-ds-accent-end`: `#2563eb`
+- `--logic-ds-danger-start`: `#e25147`
+- `--logic-ds-danger-end`: `#cf433a`
+- `--logic-ds-playhead`: `#ffffff`
+
+통합 기본값 규칙:
+
+1. `start/end`가 같은 의미 계층인 경우 기본값을 동일하게 둔다.
+2. `soft/strong`도 구분 필요가 없으면 동일값으로 시작하고, 필요 시에만 분화한다.
+3. 시각적 위계는 색상 수를 늘리기보다 opacity와 border로 먼저 만든다.
+4. text 위계는 색상 분리보다 `white` 단일 톤 + opacity 차이로 우선 표현한다.
 
 ### Meter
 

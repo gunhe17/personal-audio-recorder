@@ -80,27 +80,57 @@ function createWebSocketAccept(key) {
 export function createHttpServer({ config, sessionManager, webDir }) {
   const sockets = new Set();
   const resolvedWebDir = path.resolve(webDir);
-  const server = http.createServer(async (req, res) => {
+  const staticRoutes = new Map([
+    ["/playground", "playground.html"],
+    ["/playground.html", "playground.html"],
+    ["/", "session.html"],
+    ["/session", "session.html"]
+  ]);
+
+  function decodePathParam(raw, label) {
     try {
-      const url = new URL(req.url, "http://" + req.headers.host);
-      const pathname = url.pathname;
+      return decodeURIComponent(raw);
+    } catch {
+      throw createApiError(400, "INVALID_PATH_PARAM", "Invalid " + label + " path parameter.");
+    }
+  }
 
-      if (pathname === "/api/v1/health" && req.method === "GET") {
+  async function getSessionOrThrow(sessionId) {
+    const manifest = await sessionManager.getSession(sessionId);
+
+    if (!manifest) {
+      throw createApiError(404, "SESSION_NOT_FOUND", "The session could not be found.");
+    }
+
+    return manifest;
+  }
+
+  const apiRoutes = [
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/health$/,
+      handler: async function (_, res) {
         json(res, 200, { status: "ok" });
-        return;
       }
-
-      if (pathname === "/api/v1/devices" && req.method === "GET") {
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/devices$/,
+      handler: async function (_, res) {
         json(res, 200, { devices: await sessionManager.listDevices() });
-        return;
       }
-
-      if (pathname === "/api/v1/device-profiles" && req.method === "GET") {
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/device-profiles$/,
+      handler: async function (_, res) {
         json(res, 200, { profiles: await sessionManager.listProfiles() });
-        return;
       }
-
-      if (pathname === "/api/v1/sessions/prepare" && req.method === "POST") {
+    },
+    {
+      method: "POST",
+      pattern: /^\/api\/v1\/sessions\/prepare$/,
+      handler: async function (req, res) {
         const body = await readJson(req);
         const manifest = await sessionManager.prepareSession(body);
 
@@ -111,63 +141,78 @@ export function createHttpServer({ config, sessionManager, webDir }) {
             storageTarget: manifest.storageTarget
           }
         });
-        return;
       }
-
-      if (pathname === "/api/v1/recorder/start" && req.method === "POST") {
+    },
+    {
+      method: "POST",
+      pattern: /^\/api\/v1\/recorder\/start$/,
+      handler: async function (req, res) {
         const body = await readJson(req);
         const recorder = await sessionManager.start(body.sessionId);
 
         json(res, 200, { recorder });
-        return;
       }
-
-      if (pathname === "/api/v1/recorder/stop" && req.method === "POST") {
+    },
+    {
+      method: "POST",
+      pattern: /^\/api\/v1\/recorder\/stop$/,
+      handler: async function (req, res) {
         const body = await readJson(req);
         const session = await sessionManager.stop(body.sessionId);
 
         json(res, 200, { session });
-        return;
       }
-
-      if (pathname === "/api/v1/recorder/state" && req.method === "GET") {
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/recorder\/state$/,
+      handler: async function (_, res) {
         json(res, 200, sessionManager.getRecorderState());
-        return;
       }
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/monitor\/state$/,
+      handler: async function (_, res) {
+        json(res, 200, sessionManager.getMonitorState());
+      }
+    },
+    {
+      method: "POST",
+      pattern: /^\/api\/v1\/monitor\/config$/,
+      handler: async function (req, res) {
+        const body = await readJson(req);
+        const monitor = await sessionManager.configureMonitor(body);
 
-      if (pathname === "/api/v1/sessions" && req.method === "GET") {
+        json(res, 200, { monitor });
+      }
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/sessions$/,
+      handler: async function (_, res) {
         json(res, 200, { sessions: await sessionManager.listSessions() });
-        return;
       }
-
-      const sessionMatch = pathname.match(/^\/api\/v1\/sessions\/([^/]+)$/);
-
-      if (sessionMatch && req.method === "GET") {
-        const manifest = await sessionManager.getSession(decodeURIComponent(sessionMatch[1]));
-
-        if (!manifest) {
-          throw createApiError(404, "SESSION_NOT_FOUND", "The session could not be found.");
-        }
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/sessions\/([^/]+)$/,
+      handler: async function (_, res, match) {
+        const sessionId = decodePathParam(match[1], "sessionId");
+        const manifest = await getSessionOrThrow(sessionId);
 
         json(res, 200, manifest);
-        return;
       }
-
-      const segmentMatch = pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/tracks\/(\d+)\/segments\/(\d+)$/);
-
-      if (segmentMatch && req.method === "GET") {
-        const sessionId = decodeURIComponent(segmentMatch[1]);
-        const manifest = await sessionManager.getSession(sessionId);
-
-        if (!manifest) {
-          throw createApiError(404, "SESSION_NOT_FOUND", "The session could not be found.");
-        }
-
-        const segmentPath = await sessionManager.store.getSegmentPath(
-          sessionId,
-          Number(segmentMatch[2]),
-          Number(segmentMatch[3])
-        );
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/sessions\/([^/]+)\/tracks\/(\d+)\/segments\/(\d+)$/,
+      handler: async function (_, res, match) {
+        const sessionId = decodePathParam(match[1], "sessionId");
+        const usbChannel = Number(match[2]);
+        const segmentIndex = Number(match[3]);
+        const manifest = await getSessionOrThrow(sessionId);
+        const segmentPath = await sessionManager.store.getSegmentPath(sessionId, usbChannel, segmentIndex);
 
         if (!segmentPath) {
           if (manifest.storageTarget === "client_download") {
@@ -178,13 +223,14 @@ export function createHttpServer({ config, sessionManager, webDir }) {
         }
 
         await sendFile(res, segmentPath);
-        return;
       }
-
-      const exportMatch = pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/export$/);
-
-      if (exportMatch && req.method === "POST") {
-        const artifact = await sessionManager.createExportArchive(decodeURIComponent(exportMatch[1]));
+    },
+    {
+      method: "POST",
+      pattern: /^\/api\/v1\/sessions\/([^/]+)\/export$/,
+      handler: async function (_, res, match) {
+        const sessionId = decodePathParam(match[1], "sessionId");
+        const artifact = await sessionManager.createExportArchive(sessionId);
 
         json(res, 200, {
           export: {
@@ -193,13 +239,13 @@ export function createHttpServer({ config, sessionManager, webDir }) {
             downloadUrl: artifact.downloadUrl
           }
         });
-        return;
       }
-
-      const archiveMatch = pathname.match(/^\/api\/v1\/sessions\/([^/]+)\/archive$/);
-
-      if (archiveMatch && req.method === "GET") {
-        const sessionId = decodeURIComponent(archiveMatch[1]);
+    },
+    {
+      method: "GET",
+      pattern: /^\/api\/v1\/sessions\/([^/]+)\/archive$/,
+      handler: async function (_, res, match) {
+        const sessionId = decodePathParam(match[1], "sessionId");
         const archivePath = await sessionManager.store.getArchivePath(sessionId);
 
         if (!archivePath) {
@@ -210,15 +256,36 @@ export function createHttpServer({ config, sessionManager, webDir }) {
         await sendFile(res, archivePath, {
           downloadName: path.basename(archivePath)
         });
+      }
+    }
+  ];
+
+  const server = http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url, "http://" + req.headers.host);
+      const pathname = url.pathname;
+
+      for (const route of apiRoutes) {
+        if (req.method !== route.method) {
+          continue;
+        }
+
+        const match = pathname.match(route.pattern);
+
+        if (!match) {
+          continue;
+        }
+
+        await route.handler(req, res, match);
         return;
       }
 
-      if (pathname === "/playground" || pathname === "/playground.html") {
-        await sendFile(res, path.join(webDir, "playground.html"));
+      if (staticRoutes.has(pathname)) {
+        await sendFile(res, path.join(webDir, staticRoutes.get(pathname)));
         return;
       }
 
-      if (pathname === "/" || pathname === "/session" || pathname.startsWith("/session/")) {
+      if (pathname.startsWith("/session/")) {
         await sendFile(res, path.join(webDir, "session.html"));
         return;
       }
