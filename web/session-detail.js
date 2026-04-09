@@ -4,16 +4,20 @@
   const DEFAULT_SIDEBAR_WIDTH = 320;
   const SIDEBAR_STORAGE_KEY = "recorder.session.sidebarWidth.v2";
   const MIN_TIMELINE_ZOOM = 1;
-  const MAX_TIMELINE_ZOOM = 8;
+  const MAX_TIMELINE_ZOOM = 4;
   const DEFAULT_TIMELINE_ZOOM = 1;
   const TIMELINE_ZOOM_STORAGE_KEY = "recorder.session.timelineZoom.v1";
   const TIMELINE_ZOOM_WHEEL_SENSITIVITY = 0.0015;
+  const DEFAULT_TRACK_CHANNEL_LIMIT = 32;
+  const MAX_USER_TRACK_COUNT = 128;
   const DEFAULT_TITLE = "New Recording";
   const DEFAULT_STORAGE_TARGET = "server_local";
   const DEFAULT_TIMELINE_SECONDS = 5 * 60;
   const POLL_INTERVAL_MS = 1000;
   const MAX_RENDER_WAVEFORM_BINS = 96;
   const MAX_LIVE_WAVEFORM_BINS = 160;
+  const METER_SMOOTH_ATTACK_MS = 220;
+  const METER_SMOOTH_RELEASE_MS = 560;
   const DBFS_METER_FLOOR = -72;
   const DBFS_METER_LOW = -36;
   const DBFS_METER_NOMINAL = -18;
@@ -23,8 +27,10 @@
   const DBFS_WAVEFORM_CEILING = -3;
   const MIN_LINEAR_DBFS = 0.000001;
   const CLIP_THRESHOLD_DBFS = -0.5;
-  const IDLE_PLAYHEAD_DEFAULT_RATIO = 0.08;
+  const IDLE_PLAYHEAD_DEFAULT_RATIO = 0;
   const PLAYHEAD_LEFT_PADDING_PX = 20;
+  const LIVE_WAVEFORM_SMOOTH_BLEND = 0.48;
+  const PLAYHEAD_AUTOFOLLOW_PADDING_PX = 96;
 
   const state = {
     devices: [],
@@ -43,10 +49,16 @@
     manifest: null,
     draft: null,
     selectedTrackIndex: 0,
+    selectedTrackIndices: new Set([0]),
+    selectedRegionKeys: new Set(),
+    hiddenRegionKeys: new Set(),
+    selectionAnchorIndex: 0,
     pendingAction: null,
     livePeaks: new Map(),
+    smoothedMeters: new Map(),
     liveWaveforms: new Map(),
     liveDurationFrames: 0,
+    recordingStartFrames: new Map(),
     waveformPlaylist: null,
     waveformDetail: null,
     previewToken: 0,
@@ -254,9 +266,37 @@
   }
 
   function appendWaveformPeaks(existingPeaks, nextPeaks, maxBins) {
+    const previous = Array.isArray(existingPeaks) ? existingPeaks : [];
+    const incoming = Array.isArray(nextPeaks)
+      ? nextPeaks.map(function (value) {
+        return Number(clamp01(value).toFixed(4));
+      })
+      : [];
+
+    if (!incoming.length) {
+      if (!maxBins || previous.length <= maxBins) {
+        return previous;
+      }
+
+      return downsampleWaveformPeaks(previous, maxBins);
+    }
+
+    const smoothed = [];
+    let runningPrevious = previous.length
+      ? Number(previous[previous.length - 1]) || 0
+      : Number(incoming[0]) || 0;
+
+    incoming.forEach(function (value) {
+      const blended = (runningPrevious * LIVE_WAVEFORM_SMOOTH_BLEND) + (value * (1 - LIVE_WAVEFORM_SMOOTH_BLEND));
+      const normalized = Number(clamp01(blended).toFixed(4));
+
+      smoothed.push(normalized);
+      runningPrevious = normalized;
+    });
+
     const merged = [
-      ...(Array.isArray(existingPeaks) ? existingPeaks : []),
-      ...(Array.isArray(nextPeaks) ? nextPeaks : [])
+      ...previous,
+      ...smoothed
     ];
 
     if (!maxBins || merged.length <= maxBins) {
@@ -479,21 +519,61 @@
     });
   }
 
-  function buildDraftTracks(profile, sourceTracks) {
-    const defaults = Array.isArray(profile?.defaultTracks) && profile.defaultTracks.length
-      ? profile.defaultTracks
-      : buildSequentialDefaults(profile?.expectedInputChannels || 1);
+  function getTrackChannelLimit(device, profile) {
+    const limits = [];
 
-    return defaults.map(function (defaultTrack) {
-      const sourceTrack = Array.isArray(sourceTracks)
-        ? sourceTracks.find(function (track) {
-          return Number(track.usbChannel) === defaultTrack.usbChannel;
-        })
-        : null;
+    if (Number.isFinite(profile?.expectedInputChannels) && profile.expectedInputChannels > 0) {
+      limits.push(profile.expectedInputChannels);
+    }
+
+    if (Number.isFinite(device?.inputChannels) && device.inputChannels > 0) {
+      limits.push(device.inputChannels);
+    }
+
+    const discoveredLimit = limits.length ? Math.max.apply(Math, limits) : DEFAULT_TRACK_CHANNEL_LIMIT;
+
+    return Math.max(1, Math.max(discoveredLimit, MAX_USER_TRACK_COUNT));
+  }
+
+  function getTrackDefaultLabel(profile, usbChannel) {
+    const defaultTrack = Array.isArray(profile?.defaultTracks)
+      ? profile.defaultTracks.find(function (track) {
+        return Number(track?.usbChannel) === Number(usbChannel);
+      })
+      : null;
+
+    return String(defaultTrack?.defaultLabel || ("Audio " + String(usbChannel).padStart(2, "0"))).trim();
+  }
+
+  function buildDraftTracks(profile, sourceTracks, device) {
+    const channelLimit = getTrackChannelLimit(device, profile);
+    const sourceList = Array.isArray(sourceTracks) ? sourceTracks : [];
+    const requestedCount = sourceList.length
+      || (Array.isArray(profile?.defaultTracks) && profile.defaultTracks.length
+        ? profile.defaultTracks.length
+        : profile?.expectedInputChannels || 1);
+    const desiredCount = Math.max(1, Math.min(channelLimit, Number.parseInt(requestedCount, 10) || 1));
+    const sourceByChannel = new Map();
+
+    sourceList.forEach(function (track) {
+      const channel = Number.parseInt(track?.usbChannel, 10);
+
+      if (!Number.isFinite(channel) || channel < 1) {
+        return;
+      }
+
+      if (!sourceByChannel.has(channel)) {
+        sourceByChannel.set(channel, track);
+      }
+    });
+
+    return Array.from({ length: desiredCount }, function (_, index) {
+      const usbChannel = index + 1;
+      const sourceTrack = sourceByChannel.get(usbChannel) || sourceList[index] || null;
 
       return {
-        usbChannel: defaultTrack.usbChannel,
-        label: String(sourceTrack?.label || defaultTrack.defaultLabel || ("USB " + String(defaultTrack.usbChannel).padStart(2, "0"))).trim(),
+        usbChannel,
+        label: String(sourceTrack?.label || getTrackDefaultLabel(profile, usbChannel)).trim(),
         armed: sourceTrack?.armed !== false
       };
     });
@@ -553,7 +633,7 @@
       profileId: profile.id,
       storageTarget: normalizeStorageTarget(merged.storageTarget),
       sampleRate: resolveSampleRate(device, profile, merged.sampleRate),
-      tracks: buildDraftTracks(profile, merged.tracks)
+      tracks: buildDraftTracks(profile, merged.tracks, device)
     };
   }
 
@@ -614,20 +694,75 @@
     };
   }
 
-  function getDisplayManifest() {
+  function buildEditableManifestView(manifest, draft) {
+    if (!manifest || !draft) {
+      return manifest || null;
+    }
+
+    const draftView = buildViewFromDraft(draft);
+    const trackByChannel = new Map();
+
+    (Array.isArray(manifest.tracks) ? manifest.tracks : []).forEach(function (track) {
+      const channel = Number.parseInt(track?.usbChannel, 10);
+
+      if (!Number.isFinite(channel) || channel < 1 || trackByChannel.has(channel)) {
+        return;
+      }
+
+      trackByChannel.set(channel, track);
+    });
+
+    const tracks = (Array.isArray(draftView.tracks) ? draftView.tracks : []).map(function (track, index) {
+      const channel = Number.parseInt(track?.usbChannel, 10);
+      const usbChannel = Number.isFinite(channel) && channel > 0 ? channel : (index + 1);
+      const original = trackByChannel.get(usbChannel);
+
+      return {
+        ...track,
+        usbChannel,
+        lastPeakDbfs: Number.isFinite(original?.lastPeakDbfs)
+          ? original.lastPeakDbfs
+          : track.lastPeakDbfs,
+        segments: Array.isArray(original?.segments) ? original.segments : []
+      };
+    });
+
+    return {
+      ...manifest,
+      title: draftView.title,
+      device: draftView.device,
+      profile: draftView.profile,
+      storageTarget: draftView.storageTarget,
+      format: {
+        ...manifest.format,
+        sampleRate: draftView.format.sampleRate,
+        bitDepth: draftView.format.bitDepth,
+        channelCount: tracks.length
+      },
+      tracks
+    };
+  }
+
+  function getDisplayManifest(draftOverride) {
+    const draft = draftOverride || state.draft;
+
     if (state.manifest) {
+      if (isDraftMode() && draft) {
+        return buildEditableManifestView(state.manifest, draft);
+      }
+
       return state.manifest;
     }
 
-    if (state.draft) {
-      return buildViewFromDraft(state.draft);
+    if (draft) {
+      return buildViewFromDraft(draft);
     }
 
     return null;
   }
 
-  function getSessionView() {
-    return getDisplayManifest() || buildViewFromDraft(ensureDraftState());
+  function getSessionView(draftOverride) {
+    return getDisplayManifest(draftOverride) || buildViewFromDraft(draftOverride || ensureDraftState());
   }
 
   function formatElapsedClock(totalSeconds) {
@@ -683,6 +818,66 @@
     }
 
     return DBFS_METER_FLOOR;
+  }
+
+  function getSmoothedMeterSample(usbChannel, targetDbfs) {
+    const channel = Number.parseInt(usbChannel, 10);
+    const safeTargetDbfs = Number.isFinite(targetDbfs) ? targetDbfs : DBFS_METER_FLOOR;
+    const targetLevel = dbfsToMeterLevel(safeTargetDbfs);
+
+    if (!Number.isFinite(channel) || channel < 1) {
+      return {
+        level: targetLevel,
+        dbfs: safeTargetDbfs
+      };
+    }
+
+    const nowMs = typeof performance !== "undefined" && typeof performance.now === "function"
+      ? performance.now()
+      : Date.now();
+    const cache = state.smoothedMeters.get(channel);
+
+    if (!cache) {
+      state.smoothedMeters.set(channel, {
+        level: targetLevel,
+        dbfs: safeTargetDbfs,
+        timestamp: nowMs
+      });
+
+      return {
+        level: targetLevel,
+        dbfs: safeTargetDbfs
+      };
+    }
+
+    const deltaMs = Math.max(16, Math.min(1000, nowMs - (cache.timestamp || nowMs)));
+    const levelTimeConstant = targetLevel >= cache.level ? METER_SMOOTH_ATTACK_MS : METER_SMOOTH_RELEASE_MS;
+    const levelAlpha = 1 - Math.exp(-deltaMs / levelTimeConstant);
+    let nextLevel = cache.level + ((targetLevel - cache.level) * levelAlpha);
+
+    const dbfsTimeConstant = safeTargetDbfs >= cache.dbfs ? METER_SMOOTH_ATTACK_MS : METER_SMOOTH_RELEASE_MS;
+    const dbfsAlpha = 1 - Math.exp(-deltaMs / dbfsTimeConstant);
+    let nextDbfs = cache.dbfs + ((safeTargetDbfs - cache.dbfs) * dbfsAlpha);
+
+    if (targetLevel <= 0.001 && nextLevel <= 0.003) {
+      nextLevel = 0;
+    }
+
+    if (safeTargetDbfs <= DBFS_METER_FLOOR && nextDbfs <= (DBFS_METER_FLOOR + 0.2)) {
+      nextDbfs = DBFS_METER_FLOOR;
+    }
+
+    const normalizedSample = {
+      level: Number(clamp01(nextLevel).toFixed(4)),
+      dbfs: Number(nextDbfs.toFixed(2))
+    };
+
+    state.smoothedMeters.set(channel, {
+      ...normalizedSample,
+      timestamp: nowMs
+    });
+
+    return normalizedSample;
   }
 
   function dbfsToMeterLevel(dbfs) {
@@ -824,29 +1019,379 @@
     return { label: "Ready", tone: "ready" };
   }
 
-  function syncSelectedTrackIndex(trackCount) {
-    if (!Number.isFinite(trackCount) || trackCount < 1) {
-      state.selectedTrackIndex = 0;
-      return;
-    }
+  function getCurrentTrackCount() {
+    const sessionCount = Array.isArray(getSessionView()?.tracks) ? getSessionView().tracks.length : 0;
+    const draftCount = Array.isArray(state.draft?.tracks) ? state.draft.tracks.length : 0;
 
-    state.selectedTrackIndex = Math.max(0, Math.min(trackCount - 1, state.selectedTrackIndex || 0));
+    return Math.max(sessionCount, draftCount, 0);
   }
 
-  function setSelectedTrackIndex(index, options) {
-    const config = options || {};
-    const trackCount = getSessionView()?.tracks?.length || state.draft?.tracks?.length || 0;
-    const nextIndex = Math.max(0, Math.min(Math.max(trackCount - 1, 0), Number(index) || 0));
+  function normalizeTrackIndex(index, trackCount) {
+    const maxIndex = Math.max(0, Number(trackCount) - 1);
 
-    if (nextIndex === state.selectedTrackIndex) {
-      return;
+    return Math.max(0, Math.min(maxIndex, Number(index) || 0));
+  }
+
+  function getSelectionSet() {
+    if (!(state.selectedTrackIndices instanceof Set)) {
+      state.selectedTrackIndices = new Set();
     }
 
-    state.selectedTrackIndex = nextIndex;
+    return state.selectedTrackIndices;
+  }
+
+  function getSelectedRegionKeys() {
+    if (!(state.selectedRegionKeys instanceof Set)) {
+      state.selectedRegionKeys = new Set();
+    }
+
+    return state.selectedRegionKeys;
+  }
+
+  function getHiddenRegionKeys() {
+    if (!(state.hiddenRegionKeys instanceof Set)) {
+      state.hiddenRegionKeys = new Set();
+    }
+
+    return state.hiddenRegionKeys;
+  }
+
+  function buildRegionKey(sessionId, usbChannel, segmentIndex) {
+    const session = String(sessionId || "");
+    const channel = Number.parseInt(usbChannel, 10);
+    const segment = Number.parseInt(segmentIndex, 10);
+
+    if (!session || !Number.isFinite(channel) || channel < 1 || !Number.isFinite(segment) || segment < 0) {
+      return null;
+    }
+
+    return [session, channel, segment].join(":");
+  }
+
+  function isRegionSelected(regionKey) {
+    if (!regionKey) {
+      return false;
+    }
+
+    return getSelectedRegionKeys().has(regionKey);
+  }
+
+  function clearSelectedRegions() {
+    const selected = getSelectedRegionKeys();
+
+    if (!selected.size) {
+      return false;
+    }
+
+    selected.clear();
+    return true;
+  }
+
+  function selectRegionFromInteraction(regionKey, additive, options) {
+    if (!regionKey) {
+      return false;
+    }
+
+    const config = options || {};
+    const current = getSelectedRegionKeys();
+    const next = additive ? new Set(current) : new Set();
+
+    if (additive && next.has(regionKey)) {
+      next.delete(regionKey);
+    } else {
+      next.add(regionKey);
+    }
+
+    const changed = !areSelectionsEqual(current, next);
+
+    if (!changed) {
+      return false;
+    }
+
+    state.selectedRegionKeys = next;
 
     if (config.render !== false) {
       renderApp();
     }
+
+    return true;
+  }
+
+  function removeSelectedRegionsFromDisplay() {
+    const selected = getSelectedRegionKeys();
+
+    if (!selected.size) {
+      return false;
+    }
+
+    const hidden = getHiddenRegionKeys();
+    let removedCount = 0;
+
+    selected.forEach(function (regionKey) {
+      if (regionKey && !hidden.has(regionKey)) {
+        hidden.add(regionKey);
+        removedCount += 1;
+      }
+    });
+
+    selected.clear();
+
+    if (!removedCount) {
+      return false;
+    }
+
+    renderApp();
+    return true;
+  }
+
+  function syncSelectedRegions(timeline) {
+    const available = new Set();
+
+    (Array.isArray(timeline?.tracks) ? timeline.tracks : []).forEach(function (track) {
+      (Array.isArray(track?.regions) ? track.regions : []).forEach(function (region) {
+        if (region?.regionKey) {
+          available.add(region.regionKey);
+        }
+      });
+    });
+
+    const next = new Set();
+    getSelectedRegionKeys().forEach(function (regionKey) {
+      if (available.has(regionKey)) {
+        next.add(regionKey);
+      }
+    });
+
+    if (!areSelectionsEqual(getSelectedRegionKeys(), next)) {
+      state.selectedRegionKeys = next;
+    }
+  }
+
+  function areSelectionsEqual(left, right) {
+    if (left.size !== right.size) {
+      return false;
+    }
+
+    for (const value of left) {
+      if (!right.has(value)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function setSelectedTracks(indices, options) {
+    const config = options || {};
+    const trackCount = Number.isFinite(config.trackCount) ? Number(config.trackCount) : getCurrentTrackCount();
+
+    if (trackCount < 1) {
+      state.selectedTrackIndex = 0;
+      state.selectionAnchorIndex = 0;
+      getSelectionSet().clear();
+      return false;
+    }
+
+    const nextSet = new Set();
+
+    (Array.isArray(indices) ? indices : []).forEach(function (index) {
+      const numeric = Number.parseInt(index, 10);
+
+      if (!Number.isFinite(numeric)) {
+        return;
+      }
+
+      nextSet.add(normalizeTrackIndex(numeric, trackCount));
+    });
+
+    const fallbackPrimary = normalizeTrackIndex(
+      Number.isFinite(config.primary)
+        ? config.primary
+        : state.selectedTrackIndex,
+      trackCount
+    );
+
+    if (!nextSet.size) {
+      nextSet.add(fallbackPrimary);
+    }
+
+    const nextPrimary = nextSet.has(Number(config.primary))
+      ? normalizeTrackIndex(config.primary, trackCount)
+      : (nextSet.has(state.selectedTrackIndex)
+        ? state.selectedTrackIndex
+        : Array.from(nextSet).sort(function (a, b) { return a - b; })[0]);
+
+    const previousSet = new Set(getSelectionSet());
+    const previousPrimary = state.selectedTrackIndex;
+    const previousAnchor = state.selectionAnchorIndex;
+    const nextAnchor = config.updateAnchor === false
+      ? normalizeTrackIndex(previousAnchor, trackCount)
+      : normalizeTrackIndex(
+        Number.isFinite(config.anchorIndex) ? config.anchorIndex : nextPrimary,
+        trackCount
+      );
+
+    const selectionChanged = previousPrimary !== nextPrimary
+      || previousAnchor !== nextAnchor
+      || !areSelectionsEqual(previousSet, nextSet);
+
+    if (!selectionChanged) {
+      return false;
+    }
+
+    state.selectedTrackIndices = nextSet;
+    state.selectedTrackIndex = nextPrimary;
+    state.selectionAnchorIndex = nextAnchor;
+
+    if (config.render !== false) {
+      renderApp();
+    }
+
+    return true;
+  }
+
+  function syncSelectedTrackIndex(trackCount) {
+    setSelectedTracks(Array.from(getSelectionSet()), {
+      trackCount,
+      primary: state.selectedTrackIndex,
+      anchorIndex: state.selectionAnchorIndex,
+      render: false
+    });
+  }
+
+  function setSelectedTrackIndex(index, options) {
+    const config = options || {};
+
+    return setSelectedTracks([index], {
+      ...config,
+      primary: index,
+      anchorIndex: index
+    });
+  }
+
+  function selectTrackFromInteraction(index, shiftKey, options) {
+    const config = options || {};
+    const trackCount = getCurrentTrackCount();
+    const nextIndex = normalizeTrackIndex(index, trackCount);
+
+    if (shiftKey) {
+      const anchor = normalizeTrackIndex(state.selectionAnchorIndex, trackCount);
+      const start = Math.min(anchor, nextIndex);
+      const end = Math.max(anchor, nextIndex);
+      const range = [];
+
+      for (let cursor = start; cursor <= end; cursor += 1) {
+        range.push(cursor);
+      }
+
+      return setSelectedTracks(range, {
+        ...config,
+        trackCount,
+        primary: nextIndex,
+        updateAnchor: false
+      });
+    }
+
+    return setSelectedTrackIndex(nextIndex, {
+      ...config,
+      trackCount
+    });
+  }
+
+  function isTrackSelected(index) {
+    return getSelectionSet().has(Number(index));
+  }
+
+  function inferLiveRegionStartFrame(track, effectiveDurationFrames) {
+    const channel = Number.parseInt(track?.usbChannel, 10);
+
+    if (Number.isFinite(channel) && state.recordingStartFrames.has(channel)) {
+      const storedStartFrame = Number.parseInt(state.recordingStartFrames.get(channel), 10);
+
+      if (Number.isFinite(storedStartFrame) && storedStartFrame >= 0) {
+        return storedStartFrame;
+      }
+    }
+
+    const segments = Array.isArray(track?.segments) ? track.segments : [];
+
+    if (!segments.length) {
+      return 0;
+    }
+
+    const normalizedSegments = segments
+      .map(function (segment) {
+        const startFrame = Number.parseInt(segment?.startFrame, 10);
+        const endFrame = Number.parseInt(segment?.endFrame, 10);
+
+        return {
+          startFrame: Number.isFinite(startFrame) ? startFrame : null,
+          endFrame: Number.isFinite(endFrame) ? endFrame : null
+        };
+      })
+      .filter(function (segment) {
+        return Number.isFinite(segment.startFrame) && Number.isFinite(segment.endFrame);
+      });
+
+    if (!normalizedSegments.length) {
+      return 0;
+    }
+
+    const sortedSegments = normalizedSegments.slice().sort(function (left, right) {
+      return left.startFrame - right.startFrame;
+    });
+
+    let tailStartFrame = sortedSegments[sortedSegments.length - 1].startFrame;
+
+    for (let index = sortedSegments.length - 2; index >= 0; index -= 1) {
+      const current = sortedSegments[index];
+      const next = sortedSegments[index + 1];
+
+      if (next.startFrame - current.endFrame > 1) {
+        break;
+      }
+
+      tailStartFrame = current.startFrame;
+    }
+
+    const clampedStartFrame = Math.max(
+      0,
+      Math.min(
+        Math.max(0, effectiveDurationFrames - 1),
+        tailStartFrame
+      )
+    );
+
+    if (Number.isFinite(channel)) {
+      state.recordingStartFrames.set(channel, clampedStartFrame);
+    }
+
+    return clampedStartFrame;
+  }
+
+  function captureRecordingStartFrames(view) {
+    state.recordingStartFrames.clear();
+
+    const tracks = Array.isArray(view?.tracks) ? view.tracks : [];
+
+    tracks.forEach(function (track) {
+      if (track?.armed === false) {
+        return;
+      }
+
+      const channel = Number.parseInt(track?.usbChannel, 10);
+
+      if (!Number.isFinite(channel)) {
+        return;
+      }
+
+      const segments = Array.isArray(track?.segments) ? track.segments : [];
+      const lastSegment = segments[segments.length - 1];
+      const lastSegmentEnd = Number.parseInt(lastSegment?.endFrame, 10);
+      const startFrame = Number.isFinite(lastSegmentEnd) ? (lastSegmentEnd + 1) : 0;
+
+      state.recordingStartFrames.set(channel, Math.max(0, startFrame));
+    });
   }
 
   function buildTimeline(view) {
@@ -866,6 +1411,7 @@
     const barMarks = ["1", "3", "5", "7", "9"];
     const defaultTimelineFrames = Math.max(sampleRate, DEFAULT_TIMELINE_SECONDS * sampleRate);
     const totalFrames = Math.max(defaultTimelineFrames, effectiveDurationFrames + (sampleRate * 30));
+    const playheadRatio = frameToRatio(effectiveDurationFrames);
 
     function frameToRatio(frame) {
       const normalized = Math.max(0, Math.min(totalFrames, frame));
@@ -903,7 +1449,21 @@
 
     const tracks = sourceTracks.map(function (track, index) {
       const color = index % 3 === 0 ? "indigo" : (index % 3 === 1 ? "blue" : "cyan");
-      const peakDbfs = getTrackPeakDbfs(track);
+      const rawPeakDbfs = getTrackPeakDbfs(track);
+      const channel = Number.parseInt(track?.usbChannel, 10);
+      const hasLivePeak = Number.isFinite(channel) && state.livePeaks.has(channel);
+
+      if (!hasLivePeak && Number.isFinite(channel)) {
+        state.smoothedMeters.delete(channel);
+      }
+
+      const meterSample = hasLivePeak
+        ? getSmoothedMeterSample(track?.usbChannel, rawPeakDbfs)
+        : {
+          level: dbfsToMeterLevel(rawPeakDbfs),
+          dbfs: rawPeakDbfs
+        };
+      const peakDbfs = meterSample.dbfs;
       const liveWaveformPeaks = downsampleWaveformPeaks(
         state.liveWaveforms.get(track.usbChannel) || [],
         MAX_RENDER_WAVEFORM_BINS
@@ -916,6 +1476,7 @@
         );
         const start = frameToColumn(segment.startFrame);
         const end = Math.max(start + 1, frameToColumn(segment.endFrame + 1));
+        const regionKey = buildRegionKey(view?.id, track.usbChannel, segment.index);
 
         return {
           start,
@@ -923,28 +1484,50 @@
           startPercent: Number((startRatio * 100).toFixed(4)),
           widthPercent: Number((Math.max(0, endRatio - startRatio) * 100).toFixed(4)),
           live: false,
+          segmentIndex: Number.isFinite(Number.parseInt(segment.index, 10))
+            ? Number.parseInt(segment.index, 10)
+            : null,
+          regionKey,
+          isSelectedRegion: isRegionSelected(regionKey),
           waveformPeaks: downsampleWaveformPeaks(segment.waveformPeaks, MAX_RENDER_WAVEFORM_BINS)
         };
+      }).filter(function (region) {
+        if (!region.regionKey) {
+          return true;
+        }
+
+        return !getHiddenRegionKeys().has(region.regionKey);
       });
 
       if (recordingView && track.armed) {
-        const lastSegment = track.segments?.[track.segments.length - 1] || null;
-        const liveStartFrame = lastSegment ? lastSegment.endFrame + 1 : 0;
-        const liveEndFrame = Math.max(liveStartFrame + 1, effectiveDurationFrames);
+        const liveStartFrame = inferLiveRegionStartFrame(track, effectiveDurationFrames);
+        const minLiveSpanRatio = (1 / totalFrames);
         const liveStartRatio = frameToRatio(liveStartFrame);
-        const liveEndRatio = Math.max(
-          liveStartRatio + (1 / totalFrames),
-          frameToRatio(liveEndFrame)
+        const clampedLiveStartRatio = Math.min(
+          liveStartRatio,
+          Math.max(0, playheadRatio - minLiveSpanRatio)
         );
-        const liveStart = frameToColumn(liveStartFrame);
-        const liveEnd = Math.max(liveStart + 1, frameToColumn(liveEndFrame));
+        const liveEndRatio = Math.max(
+          clampedLiveStartRatio + minLiveSpanRatio,
+          playheadRatio
+        );
+        const liveStartFrameForColumns = Math.floor(clampedLiveStartRatio * totalFrames);
+        const liveEndFrameForColumns = Math.max(
+          liveStartFrameForColumns + 1,
+          Math.ceil(liveEndRatio * totalFrames)
+        );
+        const liveStart = frameToColumn(liveStartFrameForColumns);
+        const liveEnd = Math.max(liveStart + 1, frameToColumn(liveEndFrameForColumns));
 
         regions.push({
           start: liveStart,
           length: Math.max(1, Math.min(columns - liveStart + 1, liveEnd - liveStart)),
-          startPercent: Number((liveStartRatio * 100).toFixed(4)),
-          widthPercent: Number((Math.max(0, liveEndRatio - liveStartRatio) * 100).toFixed(4)),
+          startPercent: Number((clampedLiveStartRatio * 100).toFixed(4)),
+          widthPercent: Number((Math.max(0, liveEndRatio - clampedLiveStartRatio) * 100).toFixed(4)),
           live: true,
+          segmentIndex: null,
+          regionKey: null,
+          isSelectedRegion: false,
           waveformPeaks: liveWaveformPeaks
         });
       }
@@ -955,7 +1538,7 @@
         armed: track.armed !== false,
         color,
         peakDbfs,
-        meterLevel: dbfsToMeterLevel(peakDbfs),
+        meterLevel: meterSample.level,
         isClipped: isClippedPeak(peakDbfs),
         liveWaveformPeaks,
         regions
@@ -965,31 +1548,35 @@
     return {
       columns,
       marks: barMarks,
-      playhead: Number(((effectiveDurationFrames / totalFrames) * columns).toFixed(3)),
+      playhead: Number((playheadRatio * columns).toFixed(3)),
       tracks
     };
   }
 
   function isDraftMode() {
-    return !state.manifest;
+    return state.recorder.state !== "recording"
+      && state.recorder.state !== "stopping"
+      && state.pendingAction !== "record"
+      && state.pendingAction !== "stop";
   }
 
   function getWorkingDraft() {
-    if (state.draft) {
-      return clone(state.draft);
+    if (!state.draft) {
+      state.draft = state.manifest
+        ? createDraftFromManifest(state.manifest)
+        : createDraftFromDefaults();
+
+      state.draft = buildDraftForSelection(state.draft);
+      persistDraftDefaults(state.draft);
     }
 
-    if (state.manifest) {
-      return createDraftFromManifest(state.manifest);
-    }
-
-    return createDraftFromDefaults();
+    return clone(state.draft);
   }
 
   function getRenderContext() {
-    const view = getSessionView();
     const editable = isDraftMode();
     const draft = editable ? getWorkingDraft() : null;
+    const view = getSessionView(draft);
     const draftDevice = draft ? getDeviceById(draft.deviceId) : null;
     const draftProfile = draft ? getProfileById(draft.profileId) : null;
 
@@ -1013,6 +1600,10 @@
     const channels = [];
 
     (Array.isArray(tracks) ? tracks : []).forEach(function (track) {
+      if (track?.armed === false) {
+        return;
+      }
+
       const channel = Number.parseInt(track?.usbChannel, 10);
 
       if (!Number.isFinite(channel) || channel < 1 || seen.has(channel)) {
@@ -1057,6 +1648,12 @@
     Array.from(state.livePeaks.keys()).forEach(function (channel) {
       if (!allow.has(channel)) {
         state.livePeaks.delete(channel);
+      }
+    });
+
+    Array.from(state.smoothedMeters.keys()).forEach(function (channel) {
+      if (!allow.has(channel)) {
+        state.smoothedMeters.delete(channel);
       }
     });
   }
@@ -1105,8 +1702,10 @@
 
   function resetLiveAudioState() {
     state.livePeaks.clear();
+    state.smoothedMeters.clear();
     state.liveWaveforms.clear();
     state.liveDurationFrames = 0;
+    state.recordingStartFrames.clear();
     state.playheadOverrideRatio = null;
   }
 
@@ -1158,8 +1757,15 @@
       state.manifest = await fetchSessionManifest(sessionId);
       state.sessionId = state.manifest.id;
 
+      if (!state.draft || previousSessionId !== state.manifest.id) {
+        state.draft = buildDraftForSelection(state.draft, createDraftFromManifest(state.manifest));
+        persistDraftDefaults(state.draft);
+      }
+
       if (previousSessionId && previousSessionId !== state.manifest.id) {
         resetLiveAudioState();
+        state.selectedRegionKeys = new Set();
+        state.hiddenRegionKeys = new Set();
       }
 
       if (config.route !== false) {
@@ -1173,6 +1779,8 @@
       state.manifest = null;
       state.sessionId = null;
       resetLiveAudioState();
+      state.selectedRegionKeys = new Set();
+      state.hiddenRegionKeys = new Set();
 
       if (config.route !== false) {
         replaceRoute(null);
@@ -1301,6 +1909,19 @@
   function renderWindowBar(context) {
     const status = getSessionStatusDescriptor(context);
     const elapsed = formatElapsedClock(getSessionElapsedSeconds(context));
+    const armedTrackCount = getArmedTrackCount(context.view);
+    const clippedTrackCount = getClippedTrackCount(context.view);
+    const statusTone = status?.tone || "ready";
+    const statusLabel = status?.label || "Ready";
+    const statusMeta = [
+      statusLabel,
+      String(armedTrackCount) + " armed"
+    ];
+
+    if (clippedTrackCount > 0) {
+      statusMeta.push("clip " + String(clippedTrackCount));
+    }
+
     const recordClassName = [
       "logic-playground-minibar__action",
       "logic-playground-minibar__action--record",
@@ -1324,6 +1945,10 @@
       '          <span class="logic-playground-minibar__display-label">Time</span>',
       "        </div>",
       '        <strong class="logic-playground-minibar__time mono">' + escapeHtml(elapsed) + "</strong>",
+      '        <div class="logic-playground-minibar__status-row logic-playground-minibar__status-row--' + escapeHtml(statusTone) + '">',
+      '          <span class="logic-playground-minibar__status-dot" aria-hidden="true"></span>',
+      '          <span class="logic-playground-minibar__status-text">' + escapeHtml(statusMeta.join(" · ")) + "</span>",
+      "        </div>",
       "      </div>",
       "    </div>",
       '    <div class="logic-playground-minibar__right">',
@@ -1391,7 +2016,7 @@
         })
       ].join("")
       : [
-        '<div class="logic-settings-dialog__notice">Settings are locked after a session has been prepared or recorded.</div>',
+        '<div class="logic-settings-dialog__notice">Settings are locked while recording is active.</div>',
         buildSettingsStaticField("Device", context.view?.device?.name || "Unknown"),
         buildSettingsStaticField("Layout", getProfileDisplayName(context.view?.profile?.id)),
         buildSettingsStaticField("Rate", formatRateLabel(context.view?.format?.sampleRate))
@@ -1403,7 +2028,7 @@
       '    <header class="logic-settings-dialog__header">',
       '      <div class="logic-settings-dialog__copy">',
       '        <h2 id="logic-settings-title">Session Settings</h2>',
-      '        <p>' + escapeHtml(context.editable ? "Select the input device, channel layout, and sample rate before recording." : "Current session configuration is shown below.") + '</p>',
+      '        <p>' + escapeHtml(context.editable ? "Select the input device, channel layout, and sample rate for the next take." : "Current session configuration is shown below.") + '</p>',
       "      </div>",
       '      <button class="logic-settings-dialog__close" type="button" data-close-settings aria-label="Close settings">Close</button>',
       "    </header>",
@@ -1418,8 +2043,26 @@
     ].join("");
   }
 
-  function renderArrangeCorner() {
-    elements.arrangeCorner.innerHTML = '<span class="logic-playground-corner-note">Timeline</span>';
+  function renderArrangeCorner(context) {
+    const draft = context?.editable ? context.draft : null;
+    const currentTrackCount = context?.editable
+      ? Math.max(1, Number(draft?.tracks?.length) || 1)
+      : Math.max(1, Number(context?.view?.tracks?.length) || 1);
+    const canEditCount = Boolean(context?.editable);
+    const decrementIcon = renderHeroIcon("minus");
+    const incrementIcon = renderHeroIcon("plus");
+
+    elements.arrangeCorner.innerHTML = [
+      '<div class="logic-track-count-controls' + (canEditCount ? "" : " is-readonly") + '">',
+      '  <div class="logic-track-plugin">',
+      '      <span class="logic-track-plugin__title">Tracks</span>',
+      '      <div class="logic-track-plugin__actions">',
+      '        <button class="logic-playground-minibar__action logic-playground-minibar__action--settings logic-track-count-action logic-track-count-action--step" type="button" data-track-count-action="decrement"' + (canEditCount ? "" : " disabled") + ' aria-label="Delete one track">' + decrementIcon + "</button>",
+      '        <button class="logic-playground-minibar__action logic-playground-minibar__action--settings logic-track-count-action logic-track-count-action--step" type="button" data-track-count-action="increment"' + (canEditCount ? "" : " disabled") + ' aria-label="Add one track">' + incrementIcon + "</button>",
+      "      </div>",
+      "  </div>",
+      "</div>"
+    ].join("");
   }
 
   function renderRuler(timeline) {
@@ -1459,25 +2102,57 @@
     const contentWidth = Math.max(1, elements.timelineContent.scrollWidth);
     const usableWidth = Math.max(1, contentWidth - PLAYHEAD_LEFT_PADDING_PX);
     const leftPx = PLAYHEAD_LEFT_PADDING_PX + (ratio * usableWidth);
-    const snappedLeftPx = Math.round(leftPx * 2) / 2;
+    const snappedLeftPx = Math.round(leftPx);
 
     elements.timelineContent.style.setProperty("--logic-playhead-ratio", ratio.toFixed(6));
     elements.timelineContent.style.setProperty("--logic-playhead-left-padding-px", String(PLAYHEAD_LEFT_PADDING_PX) + "px");
-    elements.playhead.style.left = snappedLeftPx.toFixed(1) + "px";
+    elements.playhead.style.left = String(snappedLeftPx) + "px";
+
+    const followLive = state.recorder.state === "recording" || state.recorder.state === "stopping";
+
+    if (followLive && elements.timelineScroll && !elements.playhead.classList.contains("is-dragging")) {
+      const viewportWidth = Math.max(1, elements.timelineScroll.clientWidth);
+      const currentLeft = elements.timelineScroll.scrollLeft;
+      const viewStart = currentLeft + PLAYHEAD_AUTOFOLLOW_PADDING_PX;
+      const viewEnd = currentLeft + viewportWidth - PLAYHEAD_AUTOFOLLOW_PADDING_PX;
+
+      if (leftPx > viewEnd) {
+        elements.timelineScroll.scrollLeft = Math.max(0, leftPx - viewportWidth + PLAYHEAD_AUTOFOLLOW_PADDING_PX);
+      } else if (leftPx < viewStart) {
+        elements.timelineScroll.scrollLeft = Math.max(0, leftPx - PLAYHEAD_AUTOFOLLOW_PADDING_PX);
+      }
+    }
   }
 
   function renderTrackHeaders(timeline, context) {
     elements.trackHeaders.innerHTML = timeline.tracks.map(function (track, index) {
-      const selectedClassName = index === state.selectedTrackIndex ? " is-selected" : "";
-      const sliderValue = clamp01(track.meterLevel);
-      const sliderGradient = getMeterGradient(track);
-      const peakDbfsLabel = formatDbfs(track.peakDbfs);
+      const selectedClassName = isTrackSelected(index) ? " is-selected" : "";
+      const trackChannel = Number.parseInt(track?.usbChannel, 10);
+      const hasLiveInput = Boolean(context?.draftDevice)
+        && Number.isFinite(trackChannel)
+        && state.livePeaks.has(trackChannel);
+      const hideMeterFill = (Boolean(context?.editable) && !hasLiveInput) || track.armed === false;
+      const sliderValue = hideMeterFill ? 0 : clamp01(track.meterLevel);
+      const sliderGradient = hideMeterFill
+        ? { start: "#4f5560", end: "#4f5560" }
+        : getMeterGradient(track);
+      const peakDbfsLabel = track.armed === false
+        ? "Track disarmed"
+        : (hideMeterFill ? "No input" : formatDbfs(track.peakDbfs));
+      const armClassName = [
+        "logic-track-arm",
+        track.armed !== false ? "is-armed" : "is-disarmed"
+      ].join(" ");
+      const armIcon = renderHeroIcon("record");
 
       return [
         '<article class="logic-track-header logic-track-header--session' + selectedClassName + '" data-track-row="' + String(index) + '">',
         '  <div class="logic-track-strip__index">' + escapeHtml(String(index + 1)) + "</div>",
         '  <div class="logic-track-strip__body logic-playground-track-strip__body--logic">',
         '    <div class="logic-playground-track-strip__name-area">',
+        context.editable
+          ? ('      <button class="' + armClassName + '" type="button" data-track-arm-toggle="' + String(index) + '" title="' + (track.armed !== false ? "Disarm track" : "Arm track") + '" aria-label="' + (track.armed !== false ? "Disarm track" : "Arm track") + '">' + armIcon + "</button>")
+          : ('      <span class="' + armClassName + ' is-static" aria-hidden="true">' + armIcon + "</span>"),
         context.editable
           ? [
             '      <div class="logic-track-name logic-track-name--session" data-track-name-editor data-track-index="' + String(index) + '">',
@@ -1503,9 +2178,12 @@
       region.live ? 0.35 : 0.12,
       clamp01((region.widthPercent || 0) / 100) * 100
     );
+    const regionKey = region?.regionKey || "";
+    const selectable = !region.live && Boolean(regionKey);
+    const selectedClassName = region?.isSelectedRegion ? " is-selected-region" : "";
 
     return [
-      '<article class="logic-region logic-region--display logic-region--timeline logic-region--' + escapeHtml(track.color) + (region.live ? " is-live" : "") + (track.isSelected ? " is-selected" : "") + '" style="--logic-region-start:' + startPercent.toFixed(4) + "%;--logic-region-width:" + widthPercent.toFixed(4) + "%;--logic-live-intensity:" + intensity.toFixed(2) + ';">',
+      '<article class="logic-region logic-region--display logic-region--timeline logic-region--' + escapeHtml(track.color) + (region.live ? " is-live" : "") + (track.isSelected ? " is-selected" : "") + selectedClassName + '"' + (selectable ? ' data-region-key="' + escapeHtml(regionKey) + '" data-region-selectable="true"' : "") + ' style="--logic-region-start:' + startPercent.toFixed(4) + "%;--logic-region-width:" + widthPercent.toFixed(4) + "%;--logic-live-intensity:" + intensity.toFixed(2) + ';">',
       buildWaveformMarkup(region.waveformPeaks, "logic-region__wave"),
       "</article>"
     ].join("");
@@ -1816,7 +2494,7 @@
         : "";
 
       return [
-        '<div class="logic-track-lane logic-track-lane--session' + (index === state.selectedTrackIndex ? " is-selected" : "") + '" data-track-row="' + String(index) + '">',
+        '<div class="logic-track-lane logic-track-lane--session' + (isTrackSelected(index) ? " is-selected" : "") + '" data-track-row="' + String(index) + '">',
         '  <div class="logic-track-lane__grid">',
         content,
         "  </div>",
@@ -1834,18 +2512,19 @@
     const previousScroll = getTrackScrollState();
     const context = getRenderContext();
     const timeline = buildTimeline(context.view);
+    syncSelectedRegions(timeline);
     syncSelectedTrackIndex(timeline.tracks.length);
 
     timeline.tracks = timeline.tracks.map(function (track, index) {
       return {
         ...track,
-        isSelected: index === state.selectedTrackIndex
+        isSelected: isTrackSelected(index)
       };
     });
 
     updateDocumentTitle(context.view);
     renderChrome(context);
-    renderArrangeCorner();
+    renderArrangeCorner(context);
     renderRuler(timeline);
     renderTrackHeaders(timeline, context);
     renderTrackLanes(timeline);
@@ -1895,6 +2574,145 @@
     setDraftState({
       ...state.draft,
       tracks: remapTrackInputs(state.draft.tracks, index, nextValue)
+    });
+  }
+
+  function toggleDraftTrackArmed(index) {
+    if (!state.draft || !state.draft.tracks[index]) {
+      return;
+    }
+
+    setDraftState({
+      ...state.draft,
+      tracks: state.draft.tracks.map(function (track, trackIndex) {
+        if (trackIndex !== index) {
+          return track;
+        }
+
+        return {
+          ...track,
+          armed: track.armed === false
+        };
+      })
+    });
+  }
+
+  function getDraftTrackCountLimit(draft) {
+    if (!draft) {
+      return 1;
+    }
+
+    const device = getDeviceById(draft.deviceId);
+    const profile = getProfileById(draft.profileId);
+
+    return getTrackChannelLimit(device, profile);
+  }
+
+  function setDraftTrackCount(nextCount) {
+    if (!state.draft) {
+      return;
+    }
+
+    const limit = getDraftTrackCountLimit(state.draft);
+    const requested = Number.parseInt(nextCount, 10);
+
+    if (!Number.isFinite(requested)) {
+      return;
+    }
+
+    const clampedCount = Math.max(1, Math.min(limit, requested));
+    const sourceTracks = Array.isArray(state.draft.tracks) ? state.draft.tracks : [];
+    const sourceByChannel = new Map();
+    const profile = getProfileById(state.draft.profileId);
+
+    sourceTracks.forEach(function (track) {
+      const channel = Number.parseInt(track?.usbChannel, 10);
+
+      if (!Number.isFinite(channel) || channel < 1 || sourceByChannel.has(channel)) {
+        return;
+      }
+
+      sourceByChannel.set(channel, track);
+    });
+
+    const tracks = Array.from({ length: clampedCount }, function (_, index) {
+      const usbChannel = index + 1;
+      const sourceTrack = sourceByChannel.get(usbChannel) || sourceTracks[index] || null;
+
+      return {
+        usbChannel,
+        label: String(sourceTrack?.label || getTrackDefaultLabel(profile, usbChannel)).trim(),
+        armed: sourceTrack?.armed !== false
+      };
+    });
+
+    setDraftState({
+      ...state.draft,
+      tracks
+    });
+  }
+
+  function removeSelectedDraftTracks() {
+    if (!state.draft || !isDraftMode()) {
+      return;
+    }
+
+    const sourceTracks = Array.isArray(state.draft.tracks) ? state.draft.tracks : [];
+
+    if (!sourceTracks.length) {
+      return;
+    }
+
+    const selectedIndices = Array.from(getSelectionSet())
+      .map(function (index) {
+        return Number.parseInt(index, 10);
+      })
+      .filter(function (index) {
+        return Number.isFinite(index) && index >= 0 && index < sourceTracks.length;
+      })
+      .sort(function (left, right) {
+        return left - right;
+      });
+
+    if (!selectedIndices.length) {
+      return;
+    }
+
+    const selectedLookup = new Set(selectedIndices);
+    let remaining = sourceTracks.filter(function (_track, index) {
+      return !selectedLookup.has(index);
+    });
+
+    if (!remaining.length) {
+      remaining = [sourceTracks[0]];
+    }
+
+    const profile = getProfileById(state.draft.profileId);
+    const normalizedTracks = remaining.map(function (track, index) {
+      const usbChannel = index + 1;
+
+      return {
+        usbChannel,
+        label: String(track?.label || getTrackDefaultLabel(profile, usbChannel)).trim(),
+        armed: track?.armed !== false
+      };
+    });
+
+    const nextPrimary = Math.max(
+      0,
+      Math.min(
+        normalizedTracks.length - 1,
+        selectedIndices[0]
+      )
+    );
+
+    state.selectedTrackIndex = nextPrimary;
+    state.selectionAnchorIndex = nextPrimary;
+    state.selectedTrackIndices = new Set([nextPrimary]);
+
+    setDraftState({
+      ...state.draft,
+      tracks: normalizedTracks
     });
   }
 
@@ -2025,13 +2843,12 @@
       const row = target instanceof Element ? target.closest("[data-track-row]") : null;
       const rowIndex = Number.parseInt(row?.getAttribute("data-track-row") || "", 10);
       const requestsFocusedEdit = target instanceof Element && Boolean(target.closest(".dropdown-select__trigger, [data-track-name-display]"));
+      let selectionChanged = false;
 
       if (Number.isFinite(rowIndex)) {
-        const wasSelected = rowIndex === state.selectedTrackIndex;
+        selectionChanged = selectTrackFromInteraction(rowIndex, Boolean(event.shiftKey), { render: false });
 
-        setSelectedTrackIndex(rowIndex, { render: false });
-
-        if (!wasSelected) {
+        if (selectionChanged) {
           renderApp();
 
           if (requestsFocusedEdit) {
@@ -2041,6 +2858,18 @@
       }
 
       if (!(target instanceof Element) || !state.draft) {
+        return;
+      }
+
+      const armButton = target.closest("[data-track-arm-toggle]");
+
+      if (armButton) {
+        const trackIndex = Number.parseInt(armButton.getAttribute("data-track-arm-toggle") || "", 10);
+
+        if (Number.isFinite(trackIndex)) {
+          toggleDraftTrackArmed(trackIndex);
+        }
+
         return;
       }
 
@@ -2120,10 +2949,133 @@
       const row = target.closest("[data-track-row]");
 
       if (!row) {
+        if (clearSelectedRegions()) {
+          renderApp();
+        }
         return;
       }
 
-      setSelectedTrackIndex(Number.parseInt(row.getAttribute("data-track-row") || "", 10));
+      const rowIndex = Number.parseInt(row.getAttribute("data-track-row") || "", 10);
+      const regionElement = target.closest("[data-region-key][data-region-selectable]");
+
+      if (regionElement) {
+        const regionKey = regionElement.getAttribute("data-region-key") || "";
+        const additive = Boolean(event.shiftKey || event.metaKey || event.ctrlKey);
+
+        if (Number.isFinite(rowIndex)) {
+          selectTrackFromInteraction(rowIndex, false, { render: false });
+        }
+
+        if (selectRegionFromInteraction(regionKey, additive, { render: false })) {
+          renderApp();
+        } else if (Number.isFinite(rowIndex)) {
+          renderApp();
+        }
+
+        return;
+      }
+
+      const regionCleared = clearSelectedRegions();
+
+      selectTrackFromInteraction(
+        rowIndex,
+        Boolean(event.shiftKey),
+        { render: false }
+      );
+
+      if (regionCleared || Number.isFinite(rowIndex)) {
+        renderApp();
+      }
+    });
+  }
+
+  function bindTrackSelectionKeyboard() {
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Delete" && event.key !== "Backspace") {
+        return;
+      }
+
+      const target = event.target;
+
+      if (
+        target instanceof HTMLInputElement
+        || target instanceof HTMLTextAreaElement
+        || target?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (removeSelectedRegionsFromDisplay()) {
+        event.preventDefault();
+        return;
+      }
+
+      if (!isDraftMode() || !state.draft) {
+        return;
+      }
+
+      removeSelectedDraftTracks();
+      event.preventDefault();
+    });
+  }
+
+  function bindArrangeCornerInteractions() {
+    elements.arrangeCorner?.addEventListener("click", function (event) {
+      const target = event.target;
+
+      if (!(target instanceof Element) || !state.draft || !isDraftMode()) {
+        return;
+      }
+
+      const actionButton = target.closest("[data-track-count-action]");
+
+      if (actionButton) {
+        const action = actionButton.getAttribute("data-track-count-action") || "";
+        const currentCount = Math.max(1, Number(state.draft.tracks?.length) || 1);
+
+        if (action === "increment") {
+          setDraftTrackCount(currentCount + 1);
+          return;
+        }
+
+        if (action === "decrement") {
+          setDraftTrackCount(currentCount - 1);
+        }
+
+        return;
+      }
+    });
+  }
+
+  function setPlayheadFromClientX(clientX) {
+    if (!elements.timelineScroll || !elements.timelineContent || !elements.playhead) {
+      return false;
+    }
+
+    const contentRect = elements.timelineContent.getBoundingClientRect();
+    const width = Math.max(1, elements.timelineContent.scrollWidth);
+    const usableWidth = Math.max(1, width - PLAYHEAD_LEFT_PADDING_PX);
+    const localX = (clientX - contentRect.left) + elements.timelineScroll.scrollLeft;
+    const clampedX = Math.max(PLAYHEAD_LEFT_PADDING_PX, Math.min(width, localX));
+    const ratio = clamp01((clampedX - PLAYHEAD_LEFT_PADDING_PX) / usableWidth);
+    const snappedX = Math.round(clampedX);
+
+    state.playheadOverrideRatio = ratio;
+    elements.timelineContent.style.setProperty("--logic-playhead-ratio", ratio.toFixed(6));
+    elements.timelineContent.style.setProperty("--logic-playhead-left-padding-px", String(PLAYHEAD_LEFT_PADDING_PX) + "px");
+    elements.playhead.style.left = String(snappedX) + "px";
+    return true;
+  }
+
+  function bindRulerInteractions() {
+    elements.ruler?.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0) {
+        return;
+      }
+
+      if (setPlayheadFromClientX(event.clientX)) {
+        event.preventDefault();
+      }
     });
   }
 
@@ -2133,21 +3085,6 @@
     }
 
     let dragPointerId = null;
-
-    function setFromClientX(clientX) {
-      const contentRect = elements.timelineContent.getBoundingClientRect();
-      const width = Math.max(1, elements.timelineContent.scrollWidth);
-      const usableWidth = Math.max(1, width - PLAYHEAD_LEFT_PADDING_PX);
-      const localX = (clientX - contentRect.left) + elements.timelineScroll.scrollLeft;
-      const clampedX = Math.max(PLAYHEAD_LEFT_PADDING_PX, Math.min(width, localX));
-      const ratio = clamp01((clampedX - PLAYHEAD_LEFT_PADDING_PX) / usableWidth);
-      const snappedX = Math.round(clampedX * 2) / 2;
-
-      state.playheadOverrideRatio = ratio;
-      elements.timelineContent.style.setProperty("--logic-playhead-ratio", ratio.toFixed(6));
-      elements.timelineContent.style.setProperty("--logic-playhead-left-padding-px", String(PLAYHEAD_LEFT_PADDING_PX) + "px");
-      elements.playhead.style.left = snappedX.toFixed(1) + "px";
-    }
 
     function stopDragging() {
       if (dragPointerId === null) {
@@ -2170,7 +3107,7 @@
         return;
       }
 
-      setFromClientX(event.clientX);
+      setPlayheadFromClientX(event.clientX);
     }
 
     function onPointerUp(event) {
@@ -2189,7 +3126,7 @@
       dragPointerId = event.pointerId;
       elements.playhead.classList.add("is-dragging");
       elements.playhead.setPointerCapture?.(event.pointerId);
-      setFromClientX(event.clientX);
+      setPlayheadFromClientX(event.clientX);
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
       window.addEventListener("pointercancel", onPointerUp);
@@ -2449,8 +3386,57 @@
     });
   }
 
+  function buildPrepareConfigFromDraft(draft) {
+    const normalizedTracks = (Array.isArray(draft?.tracks) ? draft.tracks : []).map(function (track, index) {
+      const parsedChannel = Number.parseInt(track?.usbChannel, 10);
+      const usbChannel = Number.isFinite(parsedChannel) && parsedChannel > 0 ? parsedChannel : (index + 1);
+
+      return {
+        usbChannel,
+        label: String(track?.label || getTrackDefaultLabel(getProfileById(draft?.profileId), usbChannel)).trim(),
+        armed: track?.armed !== false
+      };
+    });
+
+    return {
+      title: String(draft?.title || DEFAULT_TITLE).trim() || DEFAULT_TITLE,
+      deviceId: draft?.deviceId || "",
+      profileId: draft?.profileId || "",
+      storageTarget: normalizeStorageTarget(draft?.storageTarget),
+      sampleRate: Number.parseInt(draft?.sampleRate, 10) || 48000,
+      tracks: normalizedTracks
+    };
+  }
+
+  function buildPrepareConfigFromManifest(manifest) {
+    if (!manifest) {
+      return null;
+    }
+
+    return buildPrepareConfigFromDraft(createDraftFromManifest(manifest));
+  }
+
+  function isPreparedSessionReusable(draft, manifest) {
+    if (!manifest || manifest.status !== "prepared") {
+      return false;
+    }
+
+    const nextConfig = buildPrepareConfigFromDraft(draft);
+    const currentConfig = buildPrepareConfigFromManifest(manifest);
+
+    if (!currentConfig) {
+      return false;
+    }
+
+    return JSON.stringify(nextConfig) === JSON.stringify(currentConfig);
+  }
+
   async function handleRecord() {
     if (state.pendingAction) {
+      return;
+    }
+
+    if (state.recorder.state === "recording" || state.recorder.state === "stopping") {
       return;
     }
 
@@ -2460,36 +3446,34 @@
     renderChrome(getRenderContext());
 
     try {
-      let sessionId = state.manifest?.status === "prepared" ? state.manifest.id : null;
+      await fetchBootstrapState();
+      const draft = buildDraftForSelection(getWorkingDraft());
+
+      state.draft = draft;
+      persistDraftDefaults(draft);
+      renderApp();
+
+      if (!draft.deviceId || !draft.profileId) {
+        throw new Error("No compatible recorder device/profile is available. Open Settings and choose a valid device/layout.");
+      }
+
+      let sessionId = isPreparedSessionReusable(draft, state.manifest)
+        ? state.manifest.id
+        : null;
 
       if (!sessionId) {
-        await fetchBootstrapState();
-        const draft = buildDraftForSelection(getWorkingDraft());
-
-        state.draft = draft;
-        persistDraftDefaults(draft);
-        renderApp();
-
-        if (!draft.deviceId || !draft.profileId) {
-          throw new Error("No compatible recorder device/profile is available. Open Settings and choose a valid device/layout.");
-        }
-
+        const preparePayload = buildPrepareConfigFromDraft(draft);
         const prepared = await apiRequest("/api/v1/sessions/prepare", {
           method: "POST",
-          body: JSON.stringify({
-            title: draft.title,
-            deviceId: draft.deviceId,
-            profileId: draft.profileId,
-            storageTarget: draft.storageTarget,
-            sampleRate: draft.sampleRate,
-            tracks: draft.tracks
-          })
+          body: JSON.stringify(preparePayload)
         });
 
         sessionId = prepared.session.id;
         pushRoute(sessionId);
         await syncServerState(sessionId);
       }
+
+      captureRecordingStartFrames(state.manifest || getSessionView());
 
       await apiRequest("/api/v1/recorder/start", {
         method: "POST",
@@ -2589,6 +3573,72 @@
     });
   }
 
+  function shouldIgnoreGlobalTransportHotkey(event) {
+    if (event.defaultPrevented) {
+      return true;
+    }
+
+    if (event.metaKey || event.ctrlKey || event.altKey) {
+      return true;
+    }
+
+    if (state.settingsOpen) {
+      return true;
+    }
+
+    const target = event.target;
+
+    if (
+      target instanceof HTMLInputElement
+      || target instanceof HTMLTextAreaElement
+      || target?.isContentEditable
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function movePlayheadToStart() {
+    state.playheadOverrideRatio = 0;
+
+    if (elements.timelineScroll) {
+      elements.timelineScroll.scrollLeft = 0;
+    }
+
+    const timeline = buildTimeline(getSessionView());
+    renderPlayhead(timeline);
+  }
+
+  function bindTransportKeyboard() {
+    document.addEventListener("keydown", function (event) {
+      if (shouldIgnoreGlobalTransportHotkey(event)) {
+        return;
+      }
+
+      const key = String(event.key || "").toLowerCase();
+      const isRecordKey = key === "r" || event.code === "KeyR";
+      const isSpace = event.key === " " || event.key === "Spacebar" || event.code === "Space";
+
+      if (isRecordKey) {
+        handleRecord();
+        event.preventDefault();
+        return;
+      }
+
+      if (isSpace) {
+        handleStop();
+        event.preventDefault();
+        return;
+      }
+
+      if (event.key === "Enter") {
+        movePlayheadToStart();
+        event.preventDefault();
+      }
+    });
+  }
+
   async function refreshCurrentRouteSession(options) {
     const routeSessionId = getCurrentPathSessionId();
 
@@ -2668,7 +3718,14 @@
       if (state.recorder.sessionId && state.recorder.sessionId !== state.manifest?.id) {
         scheduleRefresh(100);
       } else {
-        renderChrome(getRenderContext());
+        const shouldRefreshTimeline = state.recorder.state === "recording"
+          || state.recorder.state === "stopping";
+
+        if (shouldRefreshTimeline) {
+          renderApp();
+        } else {
+          renderChrome(getRenderContext());
+        }
       }
 
       return;
@@ -2725,7 +3782,7 @@
       timeline.tracks = timeline.tracks.map(function (track, index) {
         return {
           ...track,
-          isSelected: index === state.selectedTrackIndex
+          isSelected: isTrackSelected(index)
         };
       });
 
@@ -2817,11 +3874,15 @@
     });
 
     bindTransport();
+    bindTransportKeyboard();
     bindDropdownChrome();
     bindTrackResizer();
     bindScrollSync();
     bindTrackHeaderInteractions();
     bindTrackLaneInteractions();
+    bindTrackSelectionKeyboard();
+    bindArrangeCornerInteractions();
+    bindRulerInteractions();
     bindPlayheadInteractions();
     bindSettingsInteractions();
     connectWebSocket();

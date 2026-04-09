@@ -11,14 +11,45 @@ function createInputTracks(profileId) {
   return buildTracksFromProfile(profileId);
 }
 
+function normalizeUsbChannel(value, maxChannels) {
+  const channel = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(channel) || channel < 1 || channel > maxChannels) {
+    return null;
+  }
+
+  return channel;
+}
+
+function countRecordableArmedTracks(manifest) {
+  const maxChannels = Number(manifest?.format?.channelCount) || Number.MAX_SAFE_INTEGER;
+
+  return (Array.isArray(manifest?.tracks) ? manifest.tracks : []).filter(function (track) {
+    return Boolean(track?.armed) && Number.isFinite(normalizeUsbChannel(track?.usbChannel, maxChannels));
+  }).length;
+}
+
 function armedTrackChannels(manifest) {
-  return manifest.tracks
+  const maxChannels = Number(manifest?.format?.channelCount) || Number.MAX_SAFE_INTEGER;
+  const seen = new Set();
+  const channels = [];
+
+  manifest.tracks
     .filter(function (track) {
       return track.armed;
     })
-    .map(function (track) {
-      return track.usbChannel;
+    .forEach(function (track) {
+      const channel = normalizeUsbChannel(track.usbChannel, maxChannels);
+
+      if (!Number.isFinite(channel) || seen.has(channel)) {
+        return;
+      }
+
+      seen.add(channel);
+      channels.push(channel);
     });
+
+  return channels;
 }
 
 function normalizeTrackChannels(trackChannels, maxChannels) {
@@ -105,9 +136,7 @@ export class SessionManager extends EventEmitter {
         sessionId: manifest.id,
         durationSeconds: durationFramesToSeconds(manifest.durationFrames, manifest.format.sampleRate),
         sampleRate: manifest.format.sampleRate,
-        channelsArmed: manifest.tracks.filter(function (track) {
-          return track.armed;
-        }).length,
+        channelsArmed: countRecordableArmedTracks(manifest),
         dropCount: manifest.dropEvents.length,
         storageTarget: manifest.storageTarget
       });
@@ -261,32 +290,47 @@ export class SessionManager extends EventEmitter {
     }
 
     const tracks = (Array.isArray(request.tracks) && request.tracks.length ? request.tracks : createInputTracks(profile.id))
-      .map(function (track) {
+      .map(function (track, index) {
+        const usbChannel = normalizeUsbChannel(track?.usbChannel, profile.expectedInputChannels);
+        const fallbackLabel = usbChannel
+          ? ("USB " + String(usbChannel).padStart(2, "0"))
+          : ("Track " + String(index + 1).padStart(2, "0"));
+
         return {
-          usbChannel: Number(track.usbChannel),
-          label: String(track.label || "").trim() || ("USB " + String(track.usbChannel).padStart(2, "0")),
-          armed: Boolean(track.armed)
+          usbChannel,
+          label: String(track?.label || "").trim() || fallbackLabel,
+          armed: Boolean(track?.armed)
         };
       });
-
-    if (!tracks.some(function (track) {
-      return track.armed;
-    })) {
-      throw createApiError(400, "NO_ARMED_TRACKS", "At least one armed track is required.");
-    }
 
     const seenChannels = new Set();
 
     for (const track of tracks) {
-      if (track.usbChannel < 1 || track.usbChannel > profile.expectedInputChannels) {
-        throw createApiError(400, "DEVICE_CHANNEL_MISMATCH", "Track channel " + track.usbChannel + " is outside the profile range.");
+      if (!track.armed) {
+        continue;
       }
 
-      if (seenChannels.has(track.usbChannel)) {
+      const usbChannel = normalizeUsbChannel(track.usbChannel, profile.expectedInputChannels);
+
+      if (!Number.isFinite(usbChannel)) {
+        continue;
+      }
+
+      if (seenChannels.has(usbChannel)) {
         throw createApiError(400, "DUPLICATE_TRACK_CHANNEL", "Each track input must map to a unique device channel.");
       }
 
-      seenChannels.add(track.usbChannel);
+      seenChannels.add(usbChannel);
+    }
+
+    if (!tracks.some(function (track) {
+      return track.armed && Number.isFinite(normalizeUsbChannel(track.usbChannel, profile.expectedInputChannels));
+    })) {
+      throw createApiError(
+        400,
+        "NO_RECORDABLE_TRACKS",
+        "At least one armed track with an assigned input channel is required."
+      );
     }
 
     const manifest = await this.store.prepareSession(
@@ -305,9 +349,7 @@ export class SessionManager extends EventEmitter {
       sessionId: manifest.id,
       durationSeconds: 0,
       sampleRate: manifest.format.sampleRate,
-      channelsArmed: manifest.tracks.filter(function (track) {
-        return track.armed;
-      }).length,
+      channelsArmed: countRecordableArmedTracks(manifest),
       dropCount: 0,
       storageTarget: manifest.storageTarget
     });
@@ -340,6 +382,15 @@ export class SessionManager extends EventEmitter {
       stopRequested: false,
       failing: false
     };
+    const recordableTrackChannels = armedTrackChannels(manifest);
+
+    if (!recordableTrackChannels.length) {
+      throw createApiError(
+        400,
+        "NO_RECORDABLE_TRACKS",
+        "At least one armed track with an assigned input channel is required."
+      );
+    }
 
     await this.stopMonitorStream({
       clearConfig: false,
@@ -364,7 +415,7 @@ export class SessionManager extends EventEmitter {
         sampleRate: manifest.format.sampleRate,
         expectedChannels: manifest.format.channelCount,
         framesPerBufferHint: this.config.framesPerBufferHint,
-        trackChannels: armedTrackChannels(manifest),
+        trackChannels: recordableTrackChannels,
         onAudioBlock: (block) => {
           this.enqueueAudioBlock(runtime, block);
         },
@@ -390,9 +441,7 @@ export class SessionManager extends EventEmitter {
       sessionId: manifest.id,
       durationSeconds: 0,
       sampleRate: manifest.format.sampleRate,
-      channelsArmed: manifest.tracks.filter(function (track) {
-        return track.armed;
-      }).length,
+      channelsArmed: countRecordableArmedTracks(manifest),
       dropCount: manifest.dropEvents.length,
       storageTarget: manifest.storageTarget
     });
@@ -710,6 +759,11 @@ export class SessionManager extends EventEmitter {
 
       for (const channel of block.channels) {
         const trackState = runtime.trackStates.get(channel.usbChannel);
+
+        if (!trackState) {
+          continue;
+        }
+
         const slice = channel.samples.subarray(offset, offset + writeFrames);
 
         await trackState.writer.writeFramesI32(slice);
@@ -733,20 +787,27 @@ export class SessionManager extends EventEmitter {
     runtime.currentSegmentIndex = segmentIndex;
     runtime.currentSegmentStartFrame = runtime.sampleCursor;
     runtime.currentSegmentFrameCount = 0;
+    const maxChannels = Number(runtime?.manifest?.format?.channelCount) || Number.MAX_SAFE_INTEGER;
 
     for (const track of runtime.manifest.tracks) {
       if (!track.armed) {
         continue;
       }
 
+      const usbChannel = normalizeUsbChannel(track.usbChannel, maxChannels);
+
+      if (!Number.isFinite(usbChannel)) {
+        continue;
+      }
+
       const writer = await this.store.openTrackSegment(
         runtime.manifest.id,
-        track.usbChannel,
+        usbChannel,
         segmentIndex,
         runtime.manifest.format
       );
 
-      runtime.trackStates.set(track.usbChannel, {
+      runtime.trackStates.set(usbChannel, {
         writer
       });
     }
@@ -761,12 +822,25 @@ export class SessionManager extends EventEmitter {
   }
 
   async finalizeCurrentSegment(runtime) {
+    const maxChannels = Number(runtime?.manifest?.format?.channelCount) || Number.MAX_SAFE_INTEGER;
+
     for (const track of runtime.manifest.tracks) {
       if (!track.armed) {
         continue;
       }
 
-      const trackState = runtime.trackStates.get(track.usbChannel);
+      const usbChannel = normalizeUsbChannel(track.usbChannel, maxChannels);
+
+      if (!Number.isFinite(usbChannel)) {
+        continue;
+      }
+
+      const trackState = runtime.trackStates.get(usbChannel);
+
+      if (!trackState) {
+        continue;
+      }
+
       const result = await trackState.writer.finalize();
       const relativeFile = path.relative(
         this.store.sessionDir(runtime.manifest.id),
